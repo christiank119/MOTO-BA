@@ -49,19 +49,32 @@
                     <input type="text" class="inputfield" name="name" placeholder="|" maxlength="40"/>
                 </div>
                 <div class = "line"></div>
+                {% for pa in group.gruppen_leiter.all %}
+                <div class="inputblock">
+                    <label class = "category"> {% if forloop.counter == 1 %}Gruppenleiter: {% endif %}</label>
+
+                    <label class = "current">{{pa.nutzer.vorname}} {{pa.nutzer.nachname}}</label>
+                    <div class="custom-select">
+                        <select name="supervisor_{{pa.id}}">
+                            <option value="0" style="color:#ffff00;">...</option>
+                            <option value="1" style="color:#FF0000;">Entfernen</option>
+                        </select>
+                    </div>
+                </div>
+                {% endfor %}
 
                 <div class="inputblock">
-                    <label class = "category">Gruppenleiter:</label>
+                    <label class = "category"></label>
 
-                    <label class = "current">{{group.gruppen_leiter.nutzer.vorname}} {{group.gruppen_leiter.nutzer.nachname}}</label>
+                    <label class = "current">Hinzufügen</label>
                     <div class="custom-select">
                         <select name="supervisor">
                             <option value="0" style="color:#ffff00;">...</option>
-                            {% for pa in pasfree %}
-                            <option value="{{pa.id}}">{{pa.nutzer.vorname}} {{pa.nutzer.nachname}}</option>
+                            {% for paf in pasfree %}
+                            <option value="{{paf.id}}">{{paf.nutzer.vorname}} {{paf.nutzer.nachname}}</option>
                             {% endfor %}
-                            {% for pa in pasoccupied %}
-                            <option value="{{pa.id}}" style="color:#FF0000;">{{pa.nutzer.vorname}} {{pa.nutzer.nachname}}</option>
+                            {% for pao in pasoccupied %}
+                            <option value="{{pao.id}}" style="color:#FF0000;">{{pao.nutzer.vorname}} {{pao.nutzer.nachname}}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -96,7 +109,8 @@
                     <button class="change_button_transparent">Ändern</button>
                 </div>
                 {% endif %}-->
-                <input type='submit' class="change_button" name="change_button_bus_kind" value='Ändern'/>
+                <input type='submit' class="change_button" name="change_object" value='Ändern'/>
+                <input type='submit' class="change_button" name="delete_object" value='Löschen'/>
             </div>
         </form>
     </div>
