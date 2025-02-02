@@ -53,50 +53,65 @@ class LoginWindow(Gtk.Box):
 
     def _init_ui(self) -> None:
         """Initialize the UI components with webapp styling"""
-        # Main container styling
-        self.set_margin_top(50)
-        self.set_margin_bottom(50)
-        self.set_margin_start(50)
-        self.set_margin_end(50)
 
-        # Header with help button
+        # Create a Fixed container to position items absolutely
+        fixed_container = Gtk.Fixed()
+        fixed_container.set_size_request(1280, 720)  # Set the desired size for the login window
+
+        # Create the background image
+        background_image = Gtk.Image.new_from_file("img/colors.png")  # Update path to your background image
+        background_image.set_halign(Gtk.Align.CENTER)
+        background_image.set_valign(Gtk.Align.CENTER)
+
+        # Position the background image in the fixed container (0,0 is top-left corner)
+        fixed_container.put(background_image, 0, 0)
+
+        # Create the content container for the login form
+        content_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        content_container.set_size_request(1217, 660)
+        content_container.set_hexpand(True)
+        content_container.set_vexpand(True)
+        content_container.set_margin_top(30)
+        content_container.set_margin_bottom(30)
+        content_container.set_margin_start(30)
+        content_container.set_margin_end(30)
+        content_container.set_name("content_container")
+
+
+        # Add the form components into the content container
         header = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         header.set_margin_bottom(20)
-
         help_button = self._create_help_button()
-        header.pack_end(help_button, False, False, 20)
-        self.pack_start(header, False, False, 0)
+        header.pack_end(help_button, False, False, 0)
+        content_container.pack_start(header, False, False, 0)
 
-        # MOTO Logo above title
+        # MOTO Logo
         logo_image = Gtk.Image.new_from_file("img/moto_transparent_200.png")
-        logo_image.set_margin_bottom(5)  # Add some spacing below the image
-        self.pack_start(logo_image, False, False, 0)
+        logo_image.set_margin_bottom(5)
+        content_container.pack_start(logo_image, False, False, 0)
 
         # Title
         title = Gtk.Label(label="Login")
         title.set_name("heading_type1")
         title.set_margin_bottom(20)
-
-        self.pack_start(title, False, False, 0)
+        content_container.pack_start(title, False, False, 0)
 
         # Login form
         form_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=20)
         form_box.set_margin_start(200)
         form_box.set_margin_end(200)
 
-        # Username field
         self.username_entry = self._create_entry("Benutzername")
         form_box.pack_start(self.username_entry, False, False, 0)
         self.username_entry.connect("activate", lambda w: self.password_entry.grab_focus())
 
-        # Password field
         self.password_entry = self._create_entry("Passwort", True)
         form_box.pack_start(self.password_entry, False, False, 0)
         self.password_entry.connect("activate", lambda w: self.invisible_submit.clicked())
 
-        self.pack_start(form_box, False, False, 0)
+        content_container.pack_start(form_box, False, False, 0)
 
-        # Create an invisible button that will be activated by Enter key
+        # Invisible submit button
         self.invisible_submit = Gtk.Button()
         self.invisible_submit.connect("clicked", self._handle_login)
         self.invisible_submit.set_can_focus(False)
@@ -112,19 +127,28 @@ class LoginWindow(Gtk.Box):
         self.login_button.connect("clicked", self._handle_login)
         button_box.pack_start(self.login_button, False, False, 0)
 
-        self.pack_start(button_box, False, False, 0)
+        content_container.pack_start(button_box, False, False, 0)
 
         # Forgot password
         self.password_label = Gtk.Label(label="Passwort vergessen?")
         self.password_label.set_name("password_label")
         self.password_label.set_margin_top(0)
-        self.pack_start(self.password_label, False, False, 0)
+        content_container.pack_start(self.password_label, False, False, 0)
 
         # Error message area
         self.error_label = Gtk.Label()
         self.error_label.set_name("error_label")
         self.error_label.set_margin_top(0)
-        self.pack_start(self.error_label, False, False, 0)
+        content_container.pack_start(self.error_label, False, False, 0)
+
+        # Position the content container on top of the background image
+        fixed_container.put(content_container, 0, 0)
+
+        # Add the whole fixed container to the parent window
+        self.add(fixed_container)
+
+        # Apply the CSS for the border-radius to the content container
+        self._apply_styles()
 
     def _create_help_button(self) -> Gtk.Button:
         """Create help button matching web styling"""
@@ -148,6 +172,13 @@ class LoginWindow(Gtk.Box):
         """Apply CSS styles to match web version"""
         css_provider = Gtk.CssProvider()
         css = f"""
+            
+            #content_container {{
+            background-color: white;
+            border-radius: 25px;
+            box-shadow: rgba(0, 0, 0, 0.2) 0px 10px 15px;
+            padding: 20px 20px 20px 20px;
+            }}
             #heading_type1 {{
                 font-family: "Inter", sans-serif;
                 font-size: 50px;
