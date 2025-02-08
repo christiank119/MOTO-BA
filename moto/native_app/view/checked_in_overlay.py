@@ -13,9 +13,28 @@ class CheckedInOverlay(Gtk.Overlay):
     def __init__(self, parent_window: Gtk.Window, user_name: str, callback: Optional[Callable] = None) -> None:
         super().__init__()
 
-        self.parent_window = parent_window
-        self.callback = callback
-        self.logger = logging.getLogger(__name__)
+        # Create a Fixed container to position items absolutely
+        fixed_container = Gtk.Fixed()
+        fixed_container.set_size_request(1280, 720)  # Set the desired size for the login window
+
+        # Create the background image
+        background_image = Gtk.Image.new_from_file("img/colors.png")  # Update path to your background image
+        background_image.set_halign(Gtk.Align.CENTER)
+        background_image.set_valign(Gtk.Align.CENTER)
+
+        # Position the background image in the fixed container (0,0 is top-left corner)
+        fixed_container.put(background_image, 0, 0)
+
+        # Create the content container for the login form
+        content_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        content_container.set_size_request(1217, 660)
+        content_container.set_hexpand(True)
+        content_container.set_vexpand(True)
+        content_container.set_margin_top(30)
+        content_container.set_margin_bottom(30)
+        content_container.set_margin_start(30)
+        content_container.set_margin_end(30)
+        content_container.set_name("content_container")
 
         # Size and position control
         center_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -37,7 +56,13 @@ class CheckedInOverlay(Gtk.Overlay):
         except Exception as e:
             logging.error(f"Failed to load checked_in image: {e}")
 
-        self.add(center_box)
+        content_container.add(center_box)
+        # Position the content container on top of the background image
+        fixed_container.put(content_container, 0, 0)
+
+        # Add the whole fixed container to the parent window
+        self.add(fixed_container)
+
         self._apply_styles()
         self.show_all()
 
@@ -48,6 +73,13 @@ class CheckedInOverlay(Gtk.Overlay):
     def _apply_styles(self) -> None:
         css_provider = Gtk.CssProvider()
         css = f"""
+            #content_container {{
+            background-color: white;
+            border-radius: 25px;
+            box-shadow: rgba(0, 0, 0, 0.2) 0px 10px 15px;
+            padding: 20px 20px 20px 20px;
+            }}
+            
             
             #overlay_heading {{
                 font-family: "Inter", sans-serif;
