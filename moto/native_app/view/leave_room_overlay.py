@@ -16,27 +16,44 @@ class LeaveRoomOverlay(Gtk.Overlay):
     def __init__(self, parent_window: Gtk.Window, user_name: str, callback: Optional[Callable] = None) -> None:
         super().__init__()
 
-        self.parent_window = parent_window
-        self.callback = callback
-        self.logger = logging.getLogger(__name__)
+        #self.parent_window = parent_window
+        #self.callback = callback
+        #self.logger = logging.getLogger(__name__)
 
-        # Main vertical box
-        main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=20)
-        main_box.set_margin_top(90)
-        main_box.set_margin_left(50)
-        main_box.set_margin_right(50)
+        # Create a Fixed container to position items absolutely
+        fixed_container = Gtk.Fixed()
+        fixed_container.set_size_request(1280, 720)  # Set the desired size for the login window
+
+        # Create the background image
+        background_image = Gtk.Image.new_from_file("img/colors.png")  # Update path to your background image
+        background_image.set_halign(Gtk.Align.CENTER)
+        background_image.set_valign(Gtk.Align.CENTER)
+
+        # Position the background image in the fixed container (0,0 is top-left corner)
+        fixed_container.put(background_image, 0, 0)
+
+        # Create the content container for the login form
+        content_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        content_container.set_size_request(1217, 660)
+        content_container.set_hexpand(True)
+        content_container.set_vexpand(True)
+        content_container.set_margin_top(30)
+        content_container.set_margin_bottom(30)
+        content_container.set_margin_start(30)
+        content_container.set_margin_end(30)
+        content_container.set_name("content_container")
 
         # Title
         title = Gtk.Label()
         title.set_markup(f"<span size='50000'>Tschüss {user_name}!</span>")
         title.set_name("overlay_heading")
-        main_box.pack_start(title, False, False, 0)
+        content_container.pack_start(title, False, False, 0)
 
         # Subtitle
         subtitle = Gtk.Label()
         subtitle.set_markup("<span size='25000'>Wohin möchtest du gehen?</span>")
         subtitle.set_name("overlay_subheading")
-        main_box.pack_start(subtitle, False, False, 20)
+        content_container.pack_start(subtitle, False, False, 20)
 
         # Buttons container
         button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=30)
@@ -54,10 +71,14 @@ class LeaveRoomOverlay(Gtk.Overlay):
             button_container = self._create_button(label, icon, color, callback)
             button_box.pack_start(button_container, False, True, 10)
 
-        main_box.pack_start(button_box, True, True, 0)
-        self.add(main_box)
+        content_container.pack_start(button_box, False, False, 0)
+
+        # Position the content container on top of the background image
+        fixed_container.put(content_container, 0, 0)
+
+        self.add(fixed_container)
         self._apply_styles()
-        self.show_all()
+        #self.show_all()
 
         # Auto timeout after 5 seconds
         GLib.timeout_add(500000, lambda: self._on_change_room()) # increased for debugging
@@ -88,6 +109,13 @@ class LeaveRoomOverlay(Gtk.Overlay):
     def _apply_styles(self) -> None:
         css_provider = Gtk.CssProvider()
         css = f"""
+            #content_container {{
+            background-color: white;
+            border-radius: 25px;
+            box-shadow: rgba(0, 0, 0, 0.2) 0px 10px 15px;
+            padding: 20px 20px 20px 20px;
+            }}
+            
             #overlay_heading, #overlay_subheading {{
                 font-family: "Inter", sans-serif;
                 font-weight: bold;
@@ -110,7 +138,7 @@ class LeaveRoomOverlay(Gtk.Overlay):
                 background: {Colors.DOOR};
                 border: none;
                 border-radius: 18px;
-                min-width: 300px;
+                min-width: 200px;
                 min-height: 300px;
                 box-shadow: rgba(0, 0, 0, 0.36) 0px 6px 20px 2px;
             }}
@@ -119,7 +147,7 @@ class LeaveRoomOverlay(Gtk.Overlay):
                 background: {Colors.TOILET};
                 border: none;
                 border-radius: 18px;
-                min-width: 300px;
+                min-width: 200px;
                 min-height: 300px;
                 box-shadow: rgba(0, 0, 0, 0.36) 0px 6px 20px 2px;
             }}
@@ -128,7 +156,7 @@ class LeaveRoomOverlay(Gtk.Overlay):
                 background: {Colors.SCHOOLYARD};
                 border: none;
                 border-radius: 18px;
-                min-width: 300px;
+                min-width: 200px;
                 min-height: 300px;
                 box-shadow: rgba(0, 0, 0, 0.36) 0px 6px 20px 2px;
             }}
@@ -137,7 +165,7 @@ class LeaveRoomOverlay(Gtk.Overlay):
                 background: {Colors.HOME};
                 border: none;
                 border-radius: 18px;
-                min-width: 300px;
+                min-width: 200px;
                 min-height: 300px;
                 box-shadow: rgba(0, 0, 0, 0.36) 0px 6px 20px 2px;
             }}

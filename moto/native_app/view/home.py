@@ -99,6 +99,14 @@ class HomeWindow(Gtk.Box):
     def _apply_styles(self) -> None:
         css_provider = Gtk.CssProvider()
         css = f"""
+            
+            #content_container {{
+            background-color: white;
+            border-radius: 25px;
+            box-shadow: rgba(0, 0, 0, 0.2) 0px 10px 15px;
+            padding: 20px 20px 20px 20px;
+            }}
+            
             #header_container_mid {{
                 font-family: "Inter", sans-serif;
                 margin: 0px;
