@@ -24,11 +24,29 @@ class HomeWindow(Gtk.Box):
         self.show_all()
 
     def _init_ui(self) -> None:
-        # Container margins
-        self.set_margin_top(20)
-        self.set_margin_bottom(10)
-        self.set_margin_start(20)
-        self.set_margin_end(20)
+        # Create a Fixed container to position items absolutely
+        fixed_container = Gtk.Fixed()
+        fixed_container.set_size_request(1280, 720)  # Set the desired size for the login window
+
+        # Create the background image
+        background_image = Gtk.Image.new_from_file("img/colors.png")  # Update path to your background image
+        background_image.set_halign(Gtk.Align.CENTER)
+        background_image.set_valign(Gtk.Align.CENTER)
+
+        # Position the background image in the fixed container (0,0 is top-left corner)
+        fixed_container.put(background_image, 0, 0)
+
+        # Create the content container for the login form
+        content_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        content_container.set_size_request(1217, 660)
+        content_container.set_hexpand(True)
+        content_container.set_vexpand(True)
+        content_container.set_margin_top(30)
+        content_container.set_margin_bottom(30)
+        content_container.set_margin_start(30)
+        content_container.set_margin_end(30)
+        content_container.set_name("content_container")
+
 
         # Header with login button
         header_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
@@ -38,6 +56,7 @@ class HomeWindow(Gtk.Box):
         login_button.set_name("login_button")
         login_button.connect("clicked", self._on_login_clicked)
         header_box.pack_end(login_button, False, False, 0)
+        content_container.pack_start(header_box, False, False, 0)
 
         self.pack_start(header_box, False, False, 0)
 
@@ -63,8 +82,13 @@ class HomeWindow(Gtk.Box):
         )
         explanation.set_name("explanation")
         mid_container.pack_start(explanation, False, True, 10)
+        content_container.pack_start(mid_container, False, False, 0)
 
-        self.pack_start(mid_container, True, True, 0)
+        # Position the content container on top of the background image
+        fixed_container.put(content_container, 0, 0)
+
+        # Add the whole fixed container to the parent window
+        self.add(fixed_container)
 
         # Hidden form for NFC tag ID
         self.tag_id_entry = Gtk.Entry()
