@@ -139,7 +139,7 @@ class MainWindow(Gtk.Window):
         elif page_name == "checked_in":
             self.main_container.add(CheckedInOverlay(parent_window=self, user_name="Namensgebende Grüße"))
         elif page_name == "checked_out":
-            self.main_container.add(CheckedOutOverlay(parent_window=self, userchang_name="Yannick Wenger"))
+            self.main_container.add(CheckedOutOverlay(parent_window=self, user_name="Yannick Wenger"))
         elif page_name == "go_home":
             self.main_container.add(GoHomeWindow(parent_window=self))
         elif page_name == "set_nfc_scan":
