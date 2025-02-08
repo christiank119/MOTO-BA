@@ -29,17 +29,36 @@ class GoHomeWindow(Gtk.Box):
         GLib.timeout_add(300000, self._on_timeout) # Für Debug erhöht. Debuggende Grüße, Flo
 
     def _init_ui(self) -> None:
-        # Container margins
-        self.set_margin_top(50)
-        self.set_margin_bottom(50)
-        self.set_margin_start(50)
-        self.set_margin_end(50)
+
+
+        # Create a Fixed container to position items absolutely
+        fixed_container = Gtk.Fixed()
+        fixed_container.set_size_request(1280, 720)  # Set the desired size for the login window
+
+        # Create the background image
+        background_image = Gtk.Image.new_from_file("img/colors.png")  # Update path to your background image
+        background_image.set_halign(Gtk.Align.CENTER)
+        background_image.set_valign(Gtk.Align.CENTER)
+
+        # Position the background image in the fixed container (0,0 is top-left corner)
+        fixed_container.put(background_image, 0, 0)
+
+        # Create the content container for the login form
+        content_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        content_container.set_size_request(1217, 660)
+        content_container.set_hexpand(True)
+        content_container.set_vexpand(True)
+        content_container.set_margin_top(30)
+        content_container.set_margin_bottom(30)
+        content_container.set_margin_start(30)
+        content_container.set_margin_end(30)
+        content_container.set_name("content_container")
 
         # Title
         title = Gtk.Label(label="Auf Wiedersehen!") # TODO: @chris include name of user
         title.set_name("heading_type1")
         title.set_margin_bottom(0)
-        self.pack_start(title, False, False, 0)
+        content_container.pack_start(title, False, False, 0)
 
         # Feedback buttons container
         button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=30)
@@ -62,14 +81,23 @@ class GoHomeWindow(Gtk.Box):
 
 
 
-        self.pack_start(button_box, True, True, 0)
+        content_container.pack_start(button_box, True, True, 0)
 
 
         # Subtitle
         subtitle = Gtk.Label(label="Wie war dein Tag heute?")
         subtitle.set_name("subtitle")
         subtitle.set_margin_top(0)
-        self.pack_start(subtitle, False, False, 0)
+        content_container.pack_start(subtitle, False, False, 0)
+
+        # Position the content container on top of the background image
+        fixed_container.put(content_container, 0, 0)
+
+        # Add the whole fixed container to the parent window
+        self.add(fixed_container)
+
+        # Apply the CSS for the border-radius to the content container
+        self._apply_styles()
 
     def _create_feedback_button(self, image_path: str, label_text: str, button_id: str,
                                 callback: Callable) -> Gtk.Box:
@@ -120,6 +148,14 @@ class GoHomeWindow(Gtk.Box):
     def _apply_styles(self) -> None:
         css_provider = Gtk.CssProvider()
         css = f"""
+            
+            #content_container {{
+            background-color: white;
+            border-radius: 25px;
+            box-shadow: rgba(0, 0, 0, 0.2) 0px 10px 15px;
+            padding: 20px 20px 20px 20px;
+            }}
+            
             #heading_type1 {{
                 font-family: "Inter", sans-serif;
                 font-size: 56px;
@@ -135,24 +171,24 @@ class GoHomeWindow(Gtk.Box):
             }}
             
             #very_well_smiley_button {{
-                min-width: 120px;
-                min-height: 120px;
+                min-width: 80px;
+                min-height: 80px;
             }}
             
             #okay_smiley_button {{
                 border: none;
                 border-radius: 15px;
                 padding: 10px;
-                min-width: 120px;
-                min-height: 120px;
+                min-width: 80px;
+                min-height: 80px;
             }}
             
             #bad_smiley_button {{
                 border: none;
                 border-radius: 15px;
                 padding: 10px;
-                min-width: 120px;
-                min-height: 120px;
+                min-width: 80px;
+                min-height: 80px;
             }}
             
             #feedback_label {{
