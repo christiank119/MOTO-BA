@@ -2,7 +2,7 @@ import string, random
 from datetime import datetime
 from django.contrib.auth import login as auth_login, authenticate, logout as auth_logout
 from django.contrib.auth.decorators import login_required, permission_required
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import User, Group as Auth_Group
 from django.contrib import messages
 
 from django.shortcuts import redirect
@@ -11,7 +11,7 @@ from django.http import HttpResponse
 
 from openpyxl import Workbook, load_workbook
 
-from main_app.models import Nutzer, Personal, Raum, Gruppe, AG, Schueler, Zeitraum, AGZeit, Datumsraum, AGKategorie 
+from main_app.models import Custom_user, Pedagogical_specialist, Room, Group, Ag, Student, Timespan, Datespan, Ag_category 
 import re
 
 @login_required(redirect_field_name="login")
@@ -41,7 +41,7 @@ def csv_import_view(request):
 
                         if 'option_room' in optionlist:
                             if 'option_overwrite' in optionlist_reset:
-                                Raum.objects.all().delete()
+                                Room.objects.all().delete()
 
                             wss = wb['Raeume']
                             for row in wss.iter_rows(min_row=2, values_only=True):
@@ -49,7 +49,7 @@ def csv_import_view(request):
                                     raum_nr, geschoss, kapazitaet, kategorie, hex_farbe = row
 
                                     # Überprüfen, ob Raum bereits existiert
-                                    if not Raum.objects.filter(raum_nr=raum_nr).exists():
+                                    if not Room.objects.filter(room_name=raum_nr).exists():
                                         # Standardwerte setzen, falls nötig
                                         kategorie = kategorie if kategorie else "Allgemein"
                                         
@@ -62,11 +62,11 @@ def csv_import_view(request):
 
                                         color = hex_farbe if hex_farbe else "#FFFFFF"
 
-                                        Raum.objects.create(
-                                            raum_nr=raum_nr,
-                                            geschoss=geschoss,
-                                            kapazitaet=kapazitaet,
-                                            kategorie=kategorie,
+                                        Room.objects.create(
+                                            room_name=raum_nr,
+                                            floor=geschoss,
+                                            capacity=kapazitaet,
+                                            category=kategorie,
                                             color=color
                                         )
                                 except Exception as e:
@@ -75,10 +75,10 @@ def csv_import_view(request):
 
                         if 'option_user' in optionlist:
                             if 'option_overwrite' in optionlist_reset:
-                                for p in Personal.objects.all():
-                                    nutzer = p.nutzer
+                                for p in Pedagogical_specialist.objects.all():
+                                    c_user = p.custom_user
                                     p.delete()
-                                    nutzer.delete()
+                                    c_user.delete()
                                 for user in User.objects.all():
                                     if not user.username == "root":
                                         user.delete()
@@ -92,11 +92,11 @@ def csv_import_view(request):
                                 
                                 error = False
                                 vorname, nachname, funktion, rechte = row
-                                new_nutzer = Nutzer.objects.create(vorname=vorname,nachname=nachname)
+                                new_nutzer = Custom_user.objects.create(first_name=vorname,second_name=nachname)
                                 try:
                                     if rechte=='':
                                         rechte = 'Ohne Rolle'
-                                    rechte_gruppe = Group.objects.get(name=rechte)
+                                    rechte_gruppe = Auth_Group.objects.get(name=rechte)
                                 except:
                                     error=True
                                     messages.error(request, fehler_tabelle+"rechte_gruppe "+str(rechte)+" vom Personal "+str(vorname)+" "+str(nachname)+" in Zeile " + str(index) +" existiert nicht. Options: (Admin, Gruppenleitung, Raumbetreuer, Ohne Rolle)")
@@ -122,14 +122,15 @@ def csv_import_view(request):
                                     newuser.is_superuser = True
                                 newuser.save()
                                 if not error:
-                                    Personal.objects.create(rolle=funktion, nutzer=new_nutzer, user=newuser, rechte_gruppe=rechte_gruppe)
+                                    Pedagogical_specialist.objects.create(role=funktion, custom_user=new_nutzer, user=newuser, is_password_otp = True)
         
                             wb_otp.save(response)
 
+                        '''
                         if 'option_ag' in optionlist:
                             fehler_tabelle='Fehler in Tabelle AGs: '
                             if 'option_overwrite' in optionlist_reset:
-                                AG.objects.all().delete()
+                                Ag.objects.all().delete()
                             wss = wb['AGs']
                             for index, row in enumerate(wss.iter_rows(min_row=2, values_only=True)):              # Erstellung Nutzer
                                 error = False
@@ -141,20 +142,20 @@ def csv_import_view(request):
                                     un2 = name
                                     if(zahl > 1):
                                         un2 = name + str(zahl)
-                                    if (AG.objects.filter(name=un2).exists()==True):
+                                    if (Ag.objects.filter(name=un2).exists()==True):
                                         zahl += 1
                                     else:
                                         name=un2
                                         is_name_unique=True
                                 try:
                                     user = User.objects.get(username=ag_leiter)
-                                    leiter = Personal.objects.get(user=user)
+                                    leiter = Pedagogical_specialist.objects.get(user=user)
                                 except:
                                     error=True
                                     messages.error(request, fehler_tabelle + "ag_leiter " + str(name)+" in Zeile " + str(index) +" existiert nicht.")
                                 is_offene_AG = False
                                 try:
-                                    ag_kategorie = AGKategorie.objects.get(name=ag_kategorie)
+                                    ag_kategorie = Ag_category.objects.get(name=ag_kategorie)
                                 except:
                                     error=True
                                     messages.error(request, fehler_tabelle+"ag_kategorie "+str(max_anzahl)+" in Zeile " + str(index) +" existiert nicht.")
@@ -164,14 +165,14 @@ def csv_import_view(request):
                                     error=True
                                     messages.error(request, fehler_tabelle+"max_anzahl "+str(max_anzahl)+" in Zeile " + str(index) +" muss eine Zahl sein.")
                                 if(type(angebotsstart)==datetime and type(angebotsende)==datetime):                           
-                                    datumsraum = Datumsraum.objects.create(startdatum=angebotsstart, enddatum=angebotsende)
+                                    datumsraum = Datespan.objects.create(startdate=angebotsstart, enddate=angebotsende)
                                 else:
                                     error = True
                                     messages.error(request, fehler_tabelle+"Datum in Zeile " + str(index) +" kann nicht Formatiert werden. Format: dd.mm.YYYY")                         
                                 if(offene_AG.lower()=='true' or offene_AG.lower()=='ja'):
                                         is_offene_AG = True
                                 if not error:        
-                                    ag = AG.objects.create(name=name,ag_kategorie=ag_kategorie,max_anzahl=max_anzahl,offene_AG=is_offene_AG, leiter=leiter, angebots_datum_raum=datumsraum)
+                                    ag = Ag.objects.create(name=name,ag_kategorie=ag_kategorie,max_anzahl=max_anzahl,offene_AG=is_offene_AG, leiter=leiter, angebots_datum_raum=datumsraum)
                                     
                                     # TODO: Error Handling
                                     if not montag==None:
@@ -198,11 +199,11 @@ def csv_import_view(request):
                                         freitag = freitag.replace(" ","")
                                         freitag = freitag.split(";")
                                         create_ag_zeiten(freitag, AGZeit.WOCHENTAG.FREITAG, ag)
-
+                        '''
                         if 'option_group' in optionlist:
                             fehler_tabelle='Fehler in Tabelle Gruppen: '
                             if 'option_overwrite' in optionlist_reset:
-                                Gruppe.objects.all().delete()
+                                Group.objects.all().delete()
                             wss = wb['Gruppen']
                             for index, row in enumerate(wss.iter_rows(min_row=2, values_only=True)):              # Erstellung Nutzer
                                 #print(row)c
@@ -210,13 +211,13 @@ def csv_import_view(request):
                                 name, gruppen_leiter, raum = row
                                 gl_l = gruppen_leiter.replace(" ", "")
                                 gl_l = gl_l.split(',')
-                                if(Gruppe.objects.filter(name=name).exists()==False):
+                                if(Group.objects.filter(name=name).exists()==False):
                                     try:   
                                         aufsichtspersonen = []
                                         for gl_name in gl_l:
                                             try:
                                                 user = (User.objects.get(username=gl_name))
-                                                gruppen_leiter = Personal.objects.get(user=user)
+                                                gruppen_leiter = Pedagogical_specialist.objects.get(user=user)
                                                 aufsichtspersonen.append(gruppen_leiter)
                                             except:
                                                 error=True
@@ -225,13 +226,13 @@ def csv_import_view(request):
                                         error=True
                                         messages.error(request, fehler_tabelle+"Fehler bei erstellen der Gruppe "+str(name)+" in Zeile " + str(index) +" existiert nicht.")
                                     try:
-                                        raum = Raum.objects.get(raum_nr=raum)
+                                        raum = Room.objects.get(room_name=raum)
                                     except:
                                         error=True
                                         messages.error(request, fehler_tabelle+"raum "+ str(raum) +" in Zeile " + str(index) +" existiert nicht.")
                                     if not error:
-                                        neue_gruppe = Gruppe.objects.create(name=name, raum=raum)
-                                        neue_gruppe.gruppen_leiter.set(aufsichtspersonen)
+                                        neue_gruppe = Group.objects.create(name=name, room=raum)
+                                        neue_gruppe.supervisor.set(aufsichtspersonen)
                                         neue_gruppe.save()
                                 else:
                                     messages.error(request, fehler_tabelle+"Gruppe "+ str(name)+" in Zeile " + str(index) +" existiert bereits.")
@@ -239,10 +240,10 @@ def csv_import_view(request):
                         if 'option_pupil' in optionlist:
                             fehler_tabelle='Fehler in Tabelle Schueler: '
                             if 'option_overwrite' in optionlist_reset:
-                                for s in Schueler.objects.all():
-                                    nutzer = s.user_id
+                                for s in Student.objects.all():
+                                    nutzer = s.custom_user
                                     s.delete()
-                                    print(nutzer.vorname + " " + nutzer.nachname)
+                                    print(nutzer.first_name + " " + nutzer.second_name)
                                     nutzer.delete()
                             wss = wb['Schueler']
                             for index, row in enumerate(wss.iter_rows(min_row=2, values_only=True)):              # Erstellung Nutzer
@@ -254,12 +255,12 @@ def csv_import_view(request):
                                 else:
                                     bus_kind = False
                                 try:
-                                    gruppen_id = Gruppe.objects.get(name=gruppen_name)
+                                    gruppen_id = Group.objects.get(name=gruppen_name)
                                 except:
                                     error=True
                                     messages.error(request, fehler_tabelle+"Gruppe "+str(gruppen_id)+" in Zeile " + str(index) +" existiert nicht.")
-                                new_nutzer = Nutzer.objects.create(vorname=vorname,nachname=nachname)
-                                schueler = Schueler.objects.create(klasse=klasse, bus_kind=bus_kind, name_eb=name_eb, kontakt_eb=kontakt_eb, user_id=new_nutzer,gruppen_id=gruppen_id)
+                                new_nutzer = Custom_user.objects.create(first_name=vorname,second_name=nachname)
+                                schueler = Student.objects.create(school_class=klasse, bus=bus_kind, name_lg=name_eb, contact_lg=kontakt_eb, custom_user=new_nutzer,group=gruppen_id)
                                 schueler.save()
 
                         if 'option_user' in optionlist:
@@ -277,7 +278,7 @@ def csv_import_view(request):
     else:
         return redirect("csv_import")
     
-
+'''
 def create_ag_zeiten(list, day, ag):
 
     for uhrzeit in list:
@@ -301,6 +302,6 @@ def create_ag_zeiten(list, day, ag):
             zeitraum = Zeitraum.objects.create(startzeit=startzeit, endzeit=endzeit)
             agzeit = AGZeit.objects.create(wochentag=day, zeitraum=zeitraum)
             ag.ag_zeit.add(agzeit)
-    
+'''
 def is_valid_hex_color(color):
     return bool(re.fullmatch(r"^#[0-9A-Fa-f]{6}$", color))

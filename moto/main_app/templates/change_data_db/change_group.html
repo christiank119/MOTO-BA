@@ -74,7 +74,7 @@
                             <option value="{{paf.id}}">{{paf.nutzer.vorname}} {{paf.nutzer.nachname}}</option>
                             {% endfor %}
                             {% for pao in pasoccupied %}
-                            <option value="{{pao.id}}" style="color:#FF0000;">{{pao.nutzer.vorname}} {{pao.nutzer.nachname}}</option>
+                            <option value="occupied" style="color:#FF0000;">{{pao.nutzer.vorname}} {{pao.nutzer.nachname}}</option>
                             {% endfor %}
                         </select>
                     </div>

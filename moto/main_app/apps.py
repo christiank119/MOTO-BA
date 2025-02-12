@@ -9,6 +9,24 @@ class LogsystemConfig(AppConfig):
     name = 'main_app'
     def ready(self):
 
+        # Signale beim Start der App importieren
+        import main_app.signals 
+
+        from .models import Setting
+        
+        default_settings = [
+            {'key': 'combine_groups_all_ps', 'value': 'False', 'category': 'always'},
+            {'key': 'allow_ps_assigend_multiple_groups', 'value': 'True', 'category': 'always'},
+            {'key': 'allow_ps_assigend_to_groups_and_reprensentation', 'value': 'False', 'category': 'always'},
+            # Examples:
+            #{'key': 'site_name', 'value': 'My Website', 'category': 'always'},
+            #{'key': 'max_users', 'value': '1000', 'category': 'db_reset'},
+            #{'key': 'maintenance_mode', 'value': 'False', 'category': 'restart'},
+        ]
+
+        for setting in default_settings:
+            Setting.objects.get_or_create(key=setting['key'], defaults=setting)
+
         # Erstellung der Rechte Gruppen
         try:
             models = importlib.import_module('django.contrib.auth.models')

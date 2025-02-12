@@ -1,18 +1,18 @@
 from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
-from main_app.models import Personal, Gruppe
+from main_app.models import Pedagogical_specialist, Group
 
 def master_web_view(request):
     if request.user.is_authenticated:
         user = request.user
         has_ogs = False
-        if(Personal.objects.filter(user=user).exists()):
-            personal = Personal.objects.get(user=user)
-            if(Gruppe.objects.filter(gruppen_leiter=personal).exists()):
-                gruppe = Gruppe.objects.get(gruppen_leiter=personal)
-                if gruppe.vertreter == None:
+        personal = Pedagogical_specialist.get_ps_by_custom_user_id(id=user)
+        if personal:
+            if(Group.objects.filter(supervisor=personal).exists()):
+                gruppe = Group.objects.get(supervisor=personal)
+                if gruppe.representative == None:
                     has_ogs = True    
-            if Gruppe.objects.filter(vertreter=personal).exists():
+            if Group.objects.filter(representative=personal).exists():
                 has_ogs = True
         return render(request, 'master_overview/master_web.html', {"user":user, "has_ogs":has_ogs})
     else:

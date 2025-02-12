@@ -1,21 +1,21 @@
 from django.shortcuts import redirect, render
-from main_app.models import Schueler, Gruppe, Nutzer
+from main_app.models import Student, Group, Custom_user
 def student_change_view(request, id):
     if request.user.is_authenticated:
         user = request.user
         if user.is_superuser:
 
             klassen = []
-            for schueler1 in Schueler.objects.all():
-                if not (schueler1.klasse in klassen):
-                    klassen.append(schueler1.klasse)
+            for all_students in Student.objects.all():
+                if not (all_students.klasse in klassen):
+                    klassen.append(all_students.klasse)
 
-            if Schueler.objects.filter(id=id).exists():
-                student = Schueler.objects.get(id=id)
+            if Student.objects.filter(id=id).exists():
+                student = Student.objects.get(id=id)
             else:
                 if id == 0:
                     if request.method == "POST":
-                        ogs_group = request.POST.get('ogs_group')
+                        group_name = request.POST.get('ogs_group')
                         firstname = request.POST.get('firstname')
                         lastname = request.POST.get('lastname')
                         name_eb = request.POST.get('name_eb')
@@ -24,9 +24,8 @@ def student_change_view(request, id):
                         buskind = request.POST.get('bus_kind')
                         tag_id = request.POST.get('tag_id')
                         error = ""
-                        if ogs_group and ogs_group.strip() and not ogs_group == "0" and Gruppe.objects.filter(name=ogs_group).exists():
-                                    ogs_group = Gruppe.objects.get(name=ogs_group)
-                        else:
+                        group = Group.get_by_name(name=group_name)
+                        if not group:
                                     error += "Fehler bei der OGS-Gruppe\n"
                         if not(firstname and firstname.strip()):
                                     error += "Fehler beim Vornamen\n"
@@ -50,17 +49,17 @@ def student_change_view(request, id):
                         if error == "":
                             student = None
                             if b_tag_id == True:
-                                new_nutzer = Nutzer.objects.create(vorname=firstname,nachname=lastname, tag_id=tag_id)
-                                student = Schueler.objects.create(klasse=klasse, bus_kind=bus_kind, name_eb=name_eb, kontakt_eb=kontakt_eb, user_id=new_nutzer,gruppen_id=ogs_group)
+                                new_nutzer = Custom_user.objects.create(first_name=firstname,second_name=lastname, tag_id=tag_id)
+                                student = Student.objects.create(school_class=klasse, bus=bus_kind, name_lg=name_eb, contact_lg=kontakt_eb, custom_user=new_nutzer,group=group)
                                 student.save()
                             else:
-                                new_nutzer = Nutzer.objects.create(vorname=firstname,nachname=lastname)
-                                student = Schueler.objects.create(klasse=klasse, bus_kind=bus_kind, name_eb=name_eb, kontakt_eb=kontakt_eb, user_id=new_nutzer,gruppen_id=ogs_group)
+                                new_nutzer = Custom_user.objects.create(first_name=firstname,second_name=lastname)
+                                student = Student.objects.create(school_class=klasse, bus=bus_kind, name_lg=name_eb, contact_lg=kontakt_eb, custom_user=new_nutzer,group=group)
                                 student.save()
                             return redirect("/choose_data/student/"+str(student.id))
                         else:
                                 print("Error: "+ error)
-                    return render(request, 'change_data_db/create_student.html',{"ogs_groups":Gruppe.objects.all(),"klassen":klassen})
+                    return render(request, 'change_data_db/create_student.html',{"ogs_groups":Group.objects.all(),"klassen":klassen})
                 return redirect("choose_data_student")
 
             if request.method == "POST":
@@ -72,38 +71,38 @@ def student_change_view(request, id):
                 klasse = request.POST.get('klasse')
                 buskind = request.POST.get('bus_kind')
                 tag_id = request.POST.get('tag_id')
-                if(ogs_group and ogs_group.strip() and not ogs_group == "0" and Gruppe.objects.filter(name=ogs_group).exists()):
-                            ogs_group = Gruppe.objects.get(name=ogs_group)
-                            student.gruppen_id = ogs_group
+                if(ogs_group and ogs_group.strip() and not ogs_group == "0" and Group.objects.filter(name=ogs_group).exists()):
+                            ogs_group = Group.objects.get(name=ogs_group)
+                            student.group = ogs_group
                             student.save()
                 if(firstname and firstname.strip()):
-                            student.user_id.vorname = firstname
-                            student.user_id.save()
+                            student.custom_user.first_name = firstname
+                            student.custom_user.save()
                 if(lastname and lastname.strip()):
-                            student.user_id.nachname = lastname
-                            student.user_id.save()
+                            student.custom_user.second_name = lastname
+                            student.custom_user.save()
                 if(name_eb and name_eb.strip()):
-                            student.name_eb = name_eb
+                            student.name_lg = name_eb
                             student.save()
                 if(kontakt_eb and kontakt_eb.strip()):
-                            student.kontakt_eb = kontakt_eb
+                            student.contact_lg = kontakt_eb
                             student.save()
                 if(buskind=='1'):
-                            student.bus_kind=True
+                            student.bus=True
                             student.save()
                 elif(buskind=='2'):
-                            student.bus_kind=False
+                            student.bus=False
                             student.save()
                 if(tag_id and tag_id.strip()):
-                            student.user_id.tag_id = tag_id
-                            student.user_id.save()
+                            student.custom_user.tag_id = tag_id
+                            student.custom_user.save()
                 if(klasse in klassen):
-                            student.klasse = klasse
+                            student.school_class = klasse
                             student.save()
                             #return redirect("/choose_data/student/"+str(student.id))
             bus_kind = "Nein"
-            if student.bus_kind == True:
+            if student.bus == True:
                 bus_kind = "Ja"
-            return render(request, 'change_data_db/change_student.html',{"student" : student, "ogs_groups":Gruppe.objects.all(),"klassen":klassen, "bus_kind":bus_kind})
+            return render(request, 'change_data_db/change_student.html',{"student" : student, "ogs_groups":Group.objects.all(),"klassen":klassen, "bus_kind":bus_kind})
         return redirect("master_web")
     return redirect("login")
