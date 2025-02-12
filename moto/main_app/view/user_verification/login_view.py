@@ -6,7 +6,7 @@ from django.shortcuts import render
 from django.contrib.sessions.models import Session
 from django.utils import timezone
 
-from main_app.models import Personal
+from main_app.models import Pedagogical_specialist
 
 def login_view(request):
     if not request.user.is_authenticated:
@@ -22,8 +22,8 @@ def login_view(request):
                         if user.is_active:
                             logout_user_from_all_sessions(user)
                             auth_login(request, user)
-                            if(Personal.objects.filter(user=user).exists()):
-                                personal = Personal.objects.get(user=user)
+                            if(Pedagogical_specialist.objects.filter(user=user).exists()):
+                                personal = Pedagogical_specialist.objects.get(user=user)
                                 if(personal.is_password_otp == True):
                                     return redirect("set_new_pw")
                             return redirect("master_web")

@@ -14,7 +14,7 @@ from django.shortcuts import redirect
 from django.shortcuts import render
 from django import forms
 
-from main_app.models import Nutzer, Personal, Raum, Gruppe, AG, Schueler
+from main_app.models import Pedagogical_specialist
 
 @login_required(redirect_field_name='login')
 def su_pw_reset_view(request):
@@ -22,7 +22,7 @@ def su_pw_reset_view(request):
     # user = User.objects.get(user = user)
     if(user.is_superuser):
         if request.method == "POST":
-            for personal in Personal.objects.all():
+            for personal in Pedagogical_specialist.objects.all():
                 if(personal.user.username in request.POST):
                     randompw = ''.join(random.choice(string.ascii_letters+string.digits) for _ in range(6))
                     personal.user.set_password(randompw)
@@ -30,5 +30,5 @@ def su_pw_reset_view(request):
                     personal.is_password_otp = True
                     personal.save()
                     return render(request, "user_verification/new_pw.html", {"username":personal.user.username,"otp":randompw})
-        return render(request, "user_verification/superuser.html", {"allPersonal":Personal.objects.all()})
+        return render(request, "user_verification/superuser.html", {"allPersonal":Pedagogical_specialist.objects.all()})
     return redirect("master_web")

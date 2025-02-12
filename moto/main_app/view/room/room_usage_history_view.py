@@ -1,39 +1,39 @@
 from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
-from main_app.models import Raum, Raum_Historie, Aufenthalt, Raum_Belegung
+from main_app.models import Room, Room_history, Visit, Room_occupancy
 from datetime import datetime, timedelta
 
 @login_required(login_url="login")
 def room_usage_history_view(request, raum):
-    if(Raum.objects.filter(raum_nr=raum).exists):
-        raum = Raum.objects.get(raum_nr=raum)
-        raum_historien = Raum_Historie.objects.filter(raum=raum)
+    if(Room.objects.filter(room_name=raum).exists):
+        raum = Room.objects.get(room_name=raum)
+        raum_historien = Room_history.objects.filter(room=raum)
         list_histories = []
         for raum_historie in raum_historien:
-            date = raum_historie.tag.strftime("%d-%m-%y")
-            start_time = raum_historie.zeitraum.startzeit.strftime("%H:%M")
-            time = start_time + " - " + raum_historie.zeitraum.endzeit.strftime("%H:%M")
+            date = raum_historie.day.strftime("%d-%m-%y")
+            start_time = raum_historie.timespan.starttime.strftime("%H:%M")
+            time = start_time + " - " + raum_historie.timespan.endtime.strftime("%H:%M")
             number=0
-            alle_schueler_im_raum = Aufenthalt.objects.filter(raum_id=raum)
-            auf = Aufenthalt.objects.filter(raum_id=raum,zeitraum__startzeit__gt=raum_historie.zeitraum.startzeit,zeitraum__endzeit__lte=raum_historie.zeitraum.endzeit)
+            alle_schueler_im_raum = Visit.objects.filter(room=raum)
+            auf = Visit.objects.filter(room=raum,timespan__starttime__gt=raum_historie.timespan.starttime,timespan__endtime__lte=raum_historie.timespan.endtime)
             # for schueler_in_raum in alle_schueler_im_raum:
             #     if raum_historie.zeitraum.startzeit < schueler_in_raum.zeitraum.startzeit:
             #         if schueler_in_raum.zeitraum.endzeit == None or schueler_in_raum.zeitraum.endzeit <= raum_historie.zeitraum.endzeit:
             #             number += 1
             schueler_ids = auf.values_list('schueler_id', flat=True)
             number = len(list(set(schueler_ids)))
-            ag_kategorie = raum_historie.ag_kategorie.name
+            ag_kategorie = raum_historie.ag_category.name
 
             history = History(date, time, number, start_time, ag_kategorie)
             list_histories.append(history)
-        if(Raum_Belegung.objects.filter(raum=raum).exists()):
-            r_b = Raum_Belegung.objects.get(raum=raum)
+        if(Room_occupancy.objects.filter(room=raum).exists()):
+            r_b = Room_occupancy.objects.get(room=raum)
             date = datetime.now().date().strftime("%d-%m-%y")
-            start_time =  r_b.zeitraum.startzeit.strftime("%H:%M")
+            start_time =  r_b.timespan.starttime.strftime("%H:%M")
             time = "Start - " + start_time
-            kinder_in_raum = Aufenthalt.objects.filter(raum_id = raum, zeitraum__endzeit__isnull=True)      
+            kinder_in_raum = Visit.objects.filter(room = raum, timespan__endtime__isnull=True)      
             number = len(kinder_in_raum)
-            ag_kategorie = r_b.ag.ag_kategorie.name
+            ag_kategorie = r_b.ag.ag_category.name
             history = History(date, time, number, start_time, ag_kategorie)
             list_histories.append(history)
 
