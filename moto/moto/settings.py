@@ -60,7 +60,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'main_app.middleware.deviceID.DeviceMiddleware',
-    'main_app.middleware.osDetection.OsDetectionMiddleware',
     'api.middleware.csrf_deactivation.DisableCSRFMiddleware',
 ]
 
