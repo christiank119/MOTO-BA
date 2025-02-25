@@ -73,9 +73,11 @@ class Choose_RoomWindow(Gtk.Box):
         header_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
         header_box.set_margin_bottom(20)
 
+        # Logout button - Now with logout handler
         logout_button = Gtk.Button(label="Abmelden")
         logout_button.set_name("help_button")
         logout_button.set_halign(Gtk.Align.START)
+        logout_button.connect("clicked", self._on_logout_clicked)  # Added click handler
         header_box.pack_start(logout_button, False, False, 0)
 
         help_button = Gtk.Button(label="HILFE")
@@ -123,6 +125,20 @@ class Choose_RoomWindow(Gtk.Box):
         self.status_bar.set_margin_bottom(10)
         self.pack_end(self.status_bar, False, True, 0)
 
+    # New method to handle logout button click
+    def _on_logout_clicked(self, button: Gtk.Button) -> None:
+        """Handle logout button click by redirecting to login screen"""
+        self.logger.info("Logout button clicked, redirecting to login screen")
+
+        # Clear authentication tokens
+        if hasattr(self.parent_window, "access_token"):
+            self.parent_window.access_token = None
+        if hasattr(self.parent_window, "refresh_token"):
+            self.parent_window.refresh_token = None
+
+        # Redirect to login screen
+        self.parent_window.switch_page("login")
+
     def _load_rooms(self) -> None:
         self._state = RoomState.LOADING
         try:
@@ -135,12 +151,12 @@ class Choose_RoomWindow(Gtk.Box):
                 f"{Config.API_BASE_URL}{Config.ROOMS_ENDPOINT}",
                 headers=headers,
                 timeout=Config.REQUEST_TIMEOUT,
-                verify=Config.VERIFY_SSL 
+                verify=Config.VERIFY_SSL
             )
 
             if response.status_code == 200:
                 data = response.json()
-                self._rooms_by_category = [] 
+                self._rooms_by_category = []
 
                 for category_data in data:
                     category = category_data['kategorie']
@@ -149,7 +165,7 @@ class Choose_RoomWindow(Gtk.Box):
                             id=room['id'],
                             raum_nr=room['raum_nr'],
                             is_occupied=room.get('belegt', False),
-                            color=room['color'] 
+                            color=room['color']
                         )
                         for room in category_data['raeume']
                     ]
