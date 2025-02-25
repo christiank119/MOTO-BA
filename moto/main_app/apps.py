@@ -44,47 +44,47 @@ class LogsystemConfig(AppConfig):
         # Erstelle verschiedene AGKategorien 
         try:
             models = importlib.import_module('main_app.models')
-            if not models.AGKategorie.objects.filter(name='Sport').exists():
-                models.AGKategorie.objects.create(name='Sport')
-            if not models.AGKategorie.objects.filter(name='Lernen').exists():
-                models.AGKategorie.objects.create(name='Lernen')
-            if not models.AGKategorie.objects.filter(name='Kreativ').exists():
-                models.AGKategorie.objects.create(name='Kreativ')
-            if not models.AGKategorie.objects.filter(name='Ernährung').exists():
-                models.AGKategorie.objects.create(name='Ernährung')
-            if not models.AGKategorie.objects.filter(name='Natur').exists():
-                models.AGKategorie.objects.create(name='Natur')
-            if not models.AGKategorie.objects.filter(name='Gruppenraum').exists():
-                models.AGKategorie.objects.create(name='Gruppenraum')
-            if not models.AGKategorie.objects.filter(name='Ruhe').exists():
-                models.AGKategorie.objects.create(name='Ruhe')
-            if not models.AGKategorie.objects.filter(name='Sonstiges').exists():
-                models.AGKategorie.objects.create(name='Sonstiges')
+            if not models.Ag_category.objects.filter(name='Sport').exists():
+                models.Ag_category.objects.create(name='Sport')
+            if not models.Ag_category.objects.filter(name='Lernen').exists():
+                models.Ag_category.objects.create(name='Lernen')
+            if not models.Ag_category.objects.filter(name='Kreativ').exists():
+                models.Ag_category.objects.create(name='Kreativ')
+            if not models.Ag_category.objects.filter(name='Ernährung').exists():
+                models.Ag_category.objects.create(name='Ernährung')
+            if not models.Ag_category.objects.filter(name='Natur').exists():
+                models.Ag_category.objects.create(name='Natur')
+            if not models.Ag_category.objects.filter(name='Gruppenraum').exists():
+                models.Ag_category.objects.create(name='Gruppenraum')
+            if not models.Ag_category.objects.filter(name='Ruhe').exists():
+                models.Ag_category.objects.create(name='Ruhe')
+            if not models.Ag_category.objects.filter(name='Sonstiges').exists():
+                models.Ag_category.objects.create(name='Sonstiges')
         except:
             pass
         try:
             models = importlib.import_module('main_app.models')
-            r_bs = models.Raum_Belegung.objects.all()
+            r_bs = models.Room_occupancy.objects.all()
             for raum_belegung in r_bs:
-                raum = raum_belegung.raum
-                if(models.Aufenthalt.objects.filter(raum_id=raum, zeitraum__endzeit=None).exists):
-                    aufenthalte = models.Aufenthalt.objects.filter(raum_id=raum, zeitraum__endzeit=None)
+                raum = raum_belegung.room
+                if(models.Visit.objects.filter(room=raum, timespan__endtime=None).exists):
+                    aufenthalte = models.Visit.objects.filter(room=raum, timespan__endtime=None)
                     for aufenthalt in aufenthalte:
-                        zeitraum1 = aufenthalt.zeitraum
-                        zeitraum1.endzeit = datetime.now().time()
+                        zeitraum1 = aufenthalt.timespan
+                        zeitraum1.endtime = datetime.now().time()
                         zeitraum1.save()
-                zeitraum = raum_belegung.zeitraum
-                zeitraum.endzeit = datetime.now().time()
+                zeitraum = raum_belegung.timespan
+                zeitraum.endtime = datetime.now().time()
                 zeitraum.save()
-                raum_historie = models.Raum_Historie.objects.create(zeitraum=zeitraum,raum=raum,tag=datetime.now().date(),ag_name=raum_belegung.ag.name,ag_kategorie=raum_belegung.ag.ag_kategorie,leiter=raum_belegung.ag.leiter, max_anzahl=raum_belegung.ag.max_anzahl)
+                raum_historie = models.Room_history.objects.create(timespan=zeitraum,room=raum,day=datetime.now().date(),ag_name=raum_belegung.ag.name,ag_category=raum_belegung.ag.ag_category,supervisor=raum_belegung.ag.supervisor, max_participant=raum_belegung.ag.max_participant)
                 raum_belegung.delete()
             models.AG.objects.all().delete()
-            aufenthalte = models.Aufenthalt.objects.all()
+            aufenthalte = models.Visit.objects.all()
             for aufenthalt in aufenthalte:
-                if aufenthalt.zeitraum.endzeit == None:
+                if aufenthalt.timespan.endtime == None:
                     aufenthalt.delete()
-            for schueler in models.Schueler.objects.all():
-                schueler.angemeldet = False
+            for schueler in models.Student.objects.all():
+                schueler.in_house = False
                 schueler.save()
         except:
             pass
@@ -100,9 +100,9 @@ class LogsystemConfig(AppConfig):
 
         try:
             models = importlib.import_module('main_app.models')
-            groups = models.Gruppe.objects.all()
+            groups = models.Group.objects.all()
             for group in groups:
-                group.vertreter = None
+                group.represent = None
                 group.save()
         except:
             pass

@@ -100,7 +100,7 @@ def csv_import_view(request):
                                 except:
                                     error=True
                                     messages.error(request, fehler_tabelle+"rechte_gruppe "+str(rechte)+" vom Personal "+str(vorname)+" "+str(nachname)+" in Zeile " + str(index) +" existiert nicht. Options: (Admin, Gruppenleitung, Raumbetreuer, Ohne Rolle)")
-                                randompw = ''.join(random.choice(string.ascii_letters+string.digits) for _ in range(6))     #erstellung random passwort
+                                randompw = ''.join(random.choice(string.digits) for _ in range(6))     #erstellung random passwort
                                 username = (str(vorname)+str(nachname)).lower()
                                 zahl = 0
                                 is_username_unique = False
