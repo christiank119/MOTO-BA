@@ -113,18 +113,19 @@ class PinEntryWindow(Gtk.Box):
         # Update with selected username when the widget is mapped
         self.connect("map", lambda w: self._update_username_display(username_display))
 
-        # PIN form - reduced margins
-        form_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)  # Reduced spacing further
-        form_box.set_margin_start(200)
-        form_box.set_margin_end(200)
-        form_box.set_margin_top(2)  # Reduced further
+        # PIN form - balanced margins
+        form_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
+        form_box.set_margin_start(160)  # Middle ground between 200 and 120
+        form_box.set_margin_end(160)    # Middle ground between 200 and 120
+        form_box.set_margin_top(2)
 
-        # PIN entry field
-        pin_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3)  # Reduced spacing further
+        # PIN entry field - horizontal layout
+        pin_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)  # Changed to horizontal
 
-        pin_label = Gtk.Label(label="PIN eingeben:")
+        pin_label = Gtk.Label(label="PIN:")
         pin_label.set_name("label_text")
         pin_label.set_halign(Gtk.Align.START)
+        pin_label.set_margin_end(10)  # Add some spacing between label and entry
         pin_box.pack_start(pin_label, False, False, 0)
 
         self.pin_entry = Gtk.Entry()
@@ -133,20 +134,24 @@ class PinEntryWindow(Gtk.Box):
         self.pin_entry.set_editable(False)  # Not directly editable
         self.pin_entry.set_can_focus(False)  # Cannot be focused
         self.pin_entry.set_alignment(0.5)  # Center align text
-        pin_box.pack_start(self.pin_entry, False, False, 0)
+        self.pin_entry.set_hexpand(True)  # Allow entry to expand horizontally
+        pin_box.pack_start(self.pin_entry, True, True, 0)  # Changed to expand to fill space
 
         form_box.pack_start(pin_box, False, False, 0)
 
-        # Numeric keypad - smaller
-        keypad_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3)  # Reduced spacing further
-        keypad_container.set_margin_top(5)  # Reduced further
+        # Numeric keypad - balanced size
+        keypad_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        keypad_container.set_margin_top(5)
         keypad_container.set_halign(Gtk.Align.CENTER)
+        keypad_container.set_hexpand(True)  # Allow container to expand horizontally
 
         # Create the keypad grid (3x4)
         keypad = Gtk.Grid()
-        keypad.set_row_spacing(5)
-        keypad.set_column_spacing(5)
+        keypad.set_row_spacing(10)  # Middle ground spacing between rows
+        keypad.set_column_spacing(12)  # Middle ground spacing between columns
         keypad.set_halign(Gtk.Align.CENTER)
+        keypad.set_margin_start(35)  # Middle ground margins
+        keypad.set_margin_end(35)
 
         # Add number buttons (1-9)
         for i in range(3):
@@ -288,41 +293,41 @@ class PinEntryWindow(Gtk.Box):
                 letter-spacing: 6px;
             }}
             
-            /* 50% smaller buttons as requested */
+            /* Middle ground button size between previous versions */
             #keypad_button {{
                 font-family: "Inter", sans-serif;
-                font-size: 22px;  /* Reduced further */
+                font-size: 24px;    /* Middle ground between 22px and 26px */
                 font-weight: bold;
                 background: {Colors.KEYPAD_BUTTON};
                 color: {Colors.FONT};
-                border-radius: 6px;  /* Reduced further */
-                padding: 2px;  /* Reduced further */
-                min-width: 40px;
-                min-height: 40px;
+                border-radius: 7px;  /* Middle ground between 6px and 8px */
+                padding: 8px 16px;   /* Middle ground between previous padding values */
+                min-width: 75px;     /* Middle ground between 60px and 90px */
+                min-height: 48px;    /* Middle ground between 50px and 65px */
             }}
             
             #clear_button {{
                 font-family: "Inter", sans-serif;
-                font-size: 22px;  /* Reduced further */
+                font-size: 24px;    /* Middle ground between 22px and 26px */
                 font-weight: bold;
                 background: {Colors.ERROR};
                 color: white;
-                border-radius: 6px;  /* Reduced further */
-                padding: 2px;  /* Reduced further */
-                min-width: 40px;
-                min-height: 40px;
+                border-radius: 7px;  /* Middle ground between 6px and 8px */
+                padding: 8px 16px;   /* Middle ground between previous padding values */
+                min-width: 75px;     /* Middle ground between 60px and 90px */
+                min-height: 48px;    /* Middle ground between 50px and 65px */
             }}
             
             #backspace_button {{
                 font-family: "Inter", sans-serif;
-                font-size: 22px;  /* Reduced further */
+                font-size: 24px;    /* Middle ground between 22px and 26px */
                 font-weight: bold;
                 background: {Colors.KEYPAD_BUTTON};
                 color: {Colors.FONT};
-                border-radius: 6px;  /* Reduced further */
-                padding: 2px;  /* Reduced further */
-                min-width: 40px;
-                min-height: 40px;
+                border-radius: 7px;  /* Middle ground between 6px and 8px */
+                padding: 8px 16px;   /* Middle ground between previous padding values */
+                min-width: 75px;     /* Middle ground between 60px and 90px */
+                min-height: 48px;    /* Middle ground between 50px and 65px */
             }}
             
             #help_button {{
