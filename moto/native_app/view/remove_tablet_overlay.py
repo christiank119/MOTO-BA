@@ -10,6 +10,7 @@ class Colors:
     FONT = "#1b2021"
     GREEN = "#83cd2d"
     RED = "#ff3130"
+    ORANGE = "#F78C10"
 
 class RemoveTabletOverlay(Gtk.Overlay):
     def __init__(self, parent_window: Gtk.Window, callback: Optional[Callable] = None) -> None:
@@ -35,6 +36,11 @@ class RemoveTabletOverlay(Gtk.Overlay):
         no_button.connect("clicked", lambda w: self._on_no_clicked(parent_window))
         button_box.pack_start(no_button, False, False, 20)
 
+        yes_button = Gtk.Button(label="Raum zusammenlegen")
+        yes_button.set_name("change_button")
+        yes_button.connect("clicked", lambda w: self._on_yes_clicked(parent_window))
+        button_box.pack_start(yes_button, False, False, 20)
+
         yes_button = Gtk.Button(label="Ja")
         yes_button.set_name("select_button")
         yes_button.connect("clicked", lambda w: self._on_yes_clicked(parent_window))
@@ -55,7 +61,7 @@ class RemoveTabletOverlay(Gtk.Overlay):
                 color: {Colors.FONT};
             }}
             
-            #select_button, #abort_button {{
+            #select_button, #abort_button, #change_button {{
                 font-family: "Inter", sans-serif;
                 font-size: 28px;
                 font-weight: bold;
@@ -74,6 +80,10 @@ class RemoveTabletOverlay(Gtk.Overlay):
             
             #abort_button {{
                 background: {Colors.RED};
+                color: white;
+            }}
+            #change_button {{
+                background: {Colors.ORANGE};
                 color: white;
             }}
         """
