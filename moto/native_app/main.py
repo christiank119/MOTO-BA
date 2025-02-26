@@ -14,6 +14,7 @@ from view.master_tablet import MasterTabletWindow
 from view.set_nfc_set import SetNFCSetWindow
 from view.remove_tablet_overlay import RemoveTabletOverlay
 from view.change_roomdata import ChangeRoomDataWindow
+from view.pin_entry import PinEntryWindow
 
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
@@ -130,6 +131,8 @@ class MainWindow(Gtk.Window):
 
         if page_name == "login":
             self.main_container.add(LoginWindow(parent_window=self))
+        elif page_name == "pin_entry":
+            self.main_container.add(PinEntryWindow(parent_window=self))
         elif page_name == "choose_room":
             self.main_container.add(Choose_RoomWindow(parent_window=self))
         elif page_name == "home":  # only for development
