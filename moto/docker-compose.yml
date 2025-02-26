@@ -17,7 +17,7 @@ services:
       context: ./native_app
       dockerfile: Dockerfile
     environment:
-      - DISPLAY=host.docker.internal:0
+      - DISPLAY=${DISPLAY_ENV:-:0}
       - XAUTHORITY=/tmp/.Xauthority
       - API_BASE_URL=${API_BASE_URL:-https://127.0.0.1:8000/api}
       - VERIFY_SSL=${VERIFY_SSL:-False}
