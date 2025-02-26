@@ -100,14 +100,16 @@ class LoginWindow(Gtk.Box):
         form_box.set_margin_start(200)
         form_box.set_margin_end(200)
 
+        # After (improved version with label and dropdown on the same line):
+        # Create a horizontal box for label and dropdown
+        user_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+
         # User selection label
-        user_label = Gtk.Label(label="Benutzername")
+        user_label = Gtk.Label(label="Benutzername:")
         user_label.set_name("label_text")
         user_label.set_halign(Gtk.Align.START)
-        form_box.pack_start(user_label, False, False, 0)
-
-        # Create a horizontal box for the dropdown and button
-        horizontal_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        user_label.set_margin_end(10)  # Add some spacing between label and dropdown
+        user_row.pack_start(user_label, False, False, 0)  # False means don't expand
 
         # User selection dropdown
         self.user_combo = Gtk.ComboBoxText()
@@ -119,18 +121,25 @@ class LoginWindow(Gtk.Box):
         self.user_combo.append_text("Max Mustermann")
         self.user_combo.append_text("Erika Musterfrau")
         self.user_combo.set_active(0)
-        horizontal_box.pack_start(self.user_combo, True, True, 0)  # Set expand to True to fill available space
+        user_row.pack_start(self.user_combo, True, True, 0)  # True means expand to fill space
 
-        # Continue button - now on the same line as the dropdown
-        self.continue_button = Gtk.Button(label="Weiter")
-        self.continue_button.set_name("login_button")
-        self.continue_button.connect("clicked", self._handle_continue)
-        horizontal_box.pack_end(self.continue_button, False, False, 0)  # False for expand to keep natural size
-
-        # Add the horizontal box to the form box
-        form_box.pack_start(horizontal_box, False, False, 0)
+        # Add the row to the form box
+        form_box.pack_start(user_row, False, False, 0)
 
         content_container.pack_start(form_box, False, False, 0)
+
+        # Continue button
+        button_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        button_box.set_margin_start(450)
+        button_box.set_margin_end(450)
+        button_box.set_margin_top(20)
+        self.continue_button = Gtk.Button(label="Weiter")
+        self.continue_button.set_name("login_button")
+        self.continue_button.set_size_request(100, 50)
+        self.continue_button.connect("clicked", self._handle_continue)
+        button_box.pack_start(self.continue_button, False, False, 0)
+
+        content_container.pack_start(button_box, False, False, 0)
 
         # Error message area
         self.error_label = Gtk.Label()
