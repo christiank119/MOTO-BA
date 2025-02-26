@@ -15,6 +15,7 @@ from view.set_nfc_set import SetNFCSetWindow
 from view.remove_tablet_overlay import RemoveTabletOverlay
 from view.change_roomdata import ChangeRoomDataWindow
 from view.pin_entry import PinEntryWindow
+from view.set_merged_room import Set_MergedRoom
 
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
@@ -165,6 +166,8 @@ class MainWindow(Gtk.Window):
             self.main_container.add(RemoveTabletOverlay(parent_window=self))
         elif page_name == "change_roomdata":
             self.main_container.add(ChangeRoomDataWindow(parent_window=self, room_id=self.current_room_id))
+        elif page_name == "set_merged_room":
+            self.main_container.add(Set_MergedRoom(parent_window=self))
         else:
             raise ValueError(f"Unknown page name: {page_name}")
 
