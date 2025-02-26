@@ -28,11 +28,12 @@ class Config:
     REQUEST_TIMEOUT = 10
 
 class RoomData:
-    def __init__(self, id: int, raum_nr: str, is_occupied: bool, color: str):
+    def __init__(self, id: int, raum_nr: str, is_occupied: bool, color: str, activity: str = "keine"):
         self.id = id
         self.raum_nr = raum_nr
         self.is_occupied = is_occupied
         self.color = color
+        self.activity = activity  # Activity information with default value "keine"
 
 class Choose_RoomWindow(Gtk.Box):
     def __init__(self, parent_window: Gtk.Window) -> None:
@@ -147,6 +148,19 @@ class Choose_RoomWindow(Gtk.Box):
                 "Content-Type": "application/json"
             }
 
+            # For testing purposes, let's simulate some activity data
+            # In a real implementation, this would come from the API
+            sample_activities = {
+                1: "Fußball",
+                2: "Lesen",
+                3: "Kunst",
+                4: "Musik",
+                5: "Pausenbetreuung",
+                6: "Hausaufgaben",
+                7: "Basketball",
+                8: "keine"
+            }
+
             response = requests.get(
                 f"{Config.API_BASE_URL}{Config.ROOMS_ENDPOINT}",
                 headers=headers,
@@ -156,6 +170,16 @@ class Choose_RoomWindow(Gtk.Box):
 
             if response.status_code == 200:
                 data = response.json()
+
+                # Add simulated activities to the data
+                # In a real implementation, activities would come directly from the API
+                for category_data in data:
+                    for room in category_data['raeume']:
+                        room_id = room['id']
+                        # Assign a sample activity based on room ID
+                        activity_index = room_id % len(sample_activities)
+                        room['activity'] = sample_activities.get(activity_index, "keine")
+
                 self._rooms_by_category = []
 
                 for category_data in data:
@@ -165,7 +189,9 @@ class Choose_RoomWindow(Gtk.Box):
                             id=room['id'],
                             raum_nr=room['raum_nr'],
                             is_occupied=room.get('belegt', False),
-                            color=room['color']
+                            color=room['color'],
+                            # Activity would normally come from API, get a default or extract from room data
+                            activity=room.get('activity', "keine")
                         )
                         for room in category_data['raeume']
                     ]
@@ -198,11 +224,14 @@ class Choose_RoomWindow(Gtk.Box):
             for room in sorted(rooms, key=lambda x: x.raum_nr):
                 room_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
                 room_box.set_name("room_container")
+                room_box.set_margin_top(5)
+                room_box.set_margin_bottom(5)
 
-                label = Gtk.Label(label=f"Raum {room.raum_nr}")
-                label.set_name("room_label")
-                label.set_halign(Gtk.Align.START)
-                room_box.pack_start(label, True, True, 10)
+                # Single-line room info with room number and activity
+                room_info_label = Gtk.Label(label=f"Raum {room.raum_nr} - Aktivität: {room.activity}")
+                room_info_label.set_name("room_info_label")
+                room_info_label.set_halign(Gtk.Align.START)
+                room_box.pack_start(room_info_label, True, True, 10)
 
                 button = Gtk.Button(label="Belegt" if room.is_occupied else "Auswählen")
                 button.set_name("occupied_button" if room.is_occupied else "select_button")
@@ -264,11 +293,10 @@ class Choose_RoomWindow(Gtk.Box):
                 
             }}
             
-            #room_label {{
+            #room_info_label {{
                 font-family: "Inter", sans-serif;
-                font-size: 26px;
+                font-size: 24px;
                 color: {Colors.FONT};
-                
             }}
                 
             #room_list{{

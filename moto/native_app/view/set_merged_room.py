@@ -29,11 +29,12 @@ class Config:
     REQUEST_TIMEOUT = 10
 
 class RoomData:
-    def __init__(self, id: int, raum_nr: str, is_occupied: bool, color: str):
+    def __init__(self, id: int, raum_nr: str, is_occupied: bool, color: str, activity: str = "keine"):
         self.id = id
         self.raum_nr = raum_nr
         self.is_occupied = is_occupied
         self.color = color
+        self.activity = activity  # Activity information with default value "keine"
 
 class MergeRoomOverlay(Gtk.Overlay):
     """Overlay for room merging confirmation"""
@@ -261,27 +262,38 @@ class Set_MergedRoom(Gtk.Box):
         self._state = RoomState.LOADING
         # For demo purposes, let's use hardcoded data instead of API calls
         try:
+            # Define some sample activities
+            # In a real implementation, these would come from the API
+            sample_activities = {
+                102: "Fußball",
+                103: "Lesen",
+                104: "keine",
+                201: "Kunst",
+                202: "Musik",
+                301: "Sport"
+            }
+
             # Simulated data - normally from API
             self._rooms_by_category = [
                 {
                     "kategorie": "Klassenräume",
                     "raeume": [
-                        RoomData(id=102, raum_nr="102", is_occupied=False, color="#FFFFFF"),
-                        RoomData(id=103, raum_nr="103", is_occupied=True, color="#FFFFFF"),
-                        RoomData(id=104, raum_nr="104", is_occupied=False, color="#FFFFFF"),
+                        RoomData(id=102, raum_nr="102", is_occupied=False, color="#FFFFFF", activity=sample_activities[102]),
+                        RoomData(id=103, raum_nr="103", is_occupied=True, color="#FFFFFF", activity=sample_activities[103]),
+                        RoomData(id=104, raum_nr="104", is_occupied=False, color="#FFFFFF", activity=sample_activities[104]),
                     ]
                 },
                 {
                     "kategorie": "Fachräume",
                     "raeume": [
-                        RoomData(id=201, raum_nr="201", is_occupied=False, color="#FFFFFF"),
-                        RoomData(id=202, raum_nr="202", is_occupied=True, color="#FFFFFF"),
+                        RoomData(id=201, raum_nr="201", is_occupied=False, color="#FFFFFF", activity=sample_activities[201]),
+                        RoomData(id=202, raum_nr="202", is_occupied=True, color="#FFFFFF", activity=sample_activities[202]),
                     ]
                 },
                 {
                     "kategorie": "Sporthallen",
                     "raeume": [
-                        RoomData(id=301, raum_nr="Sporthalle 1", is_occupied=False, color="#FFFFFF"),
+                        RoomData(id=301, raum_nr="Sporthalle 1", is_occupied=False, color="#FFFFFF", activity=sample_activities[301]),
                     ]
                 }
             ]
@@ -317,11 +329,14 @@ class Set_MergedRoom(Gtk.Box):
 
                 room_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
                 room_box.set_name("room_container")
+                room_box.set_margin_top(5)
+                room_box.set_margin_bottom(5)
 
-                label = Gtk.Label(label=f"Raum {room.raum_nr}")
-                label.set_name("room_label")
-                label.set_halign(Gtk.Align.START)
-                room_box.pack_start(label, True, True, 10)
+                # Single-line room info with room number and activity
+                room_info_label = Gtk.Label(label=f"Raum {room.raum_nr} - Aktivität: {room.activity}")
+                room_info_label.set_name("room_info_label")
+                room_info_label.set_halign(Gtk.Align.START)
+                room_box.pack_start(room_info_label, True, True, 10)
 
                 button = Gtk.Button(label="Belegt" if room.is_occupied else "Zusammenführen")
                 button.set_name("occupied_button" if room.is_occupied else "select_button")
@@ -384,9 +399,9 @@ class Set_MergedRoom(Gtk.Box):
                 box-shadow: rgba(0, 0, 0, 0.18) 0px 2px 4px;
             }}
             
-            #room_label {{
+            #room_info_label {{
                 font-family: "Inter", sans-serif;
-                font-size: 26px;
+                font-size: 24px;
                 color: {Colors.FONT};
             }}
                 
