@@ -73,12 +73,15 @@ class PinEntryWindow(BaseWindow):
 
         # PIN entry field - horizontal layout
         pin_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        pin_box.set_halign(Gtk.Align.CENTER)
+        pin_box.set_margin_start(35)
+        pin_box.set_margin_end(35)
 
-        pin_label = Gtk.Label(label="PIN:")
-        pin_label.set_name("label_text")
-        pin_label.set_halign(Gtk.Align.START)
-        pin_label.set_margin_end(10)
-        pin_box.pack_start(pin_label, False, False, 0)
+        # pin_label = Gtk.Label(label="PIN:")
+        # pin_label.set_name("label_text")
+        # pin_label.set_halign(Gtk.Align.START)
+        # pin_label.set_margin_end(10)
+        # pin_box.pack_start(pin_label, False, False, 0)
 
         self.pin_entry = Gtk.Entry()
         self.pin_entry.set_name("pin_entry")
@@ -87,6 +90,8 @@ class PinEntryWindow(BaseWindow):
         self.pin_entry.set_can_focus(False)  # Cannot be focused
         self.pin_entry.set_alignment(0.5)  # Center align text
         self.pin_entry.set_hexpand(True)  # Allow entry to expand horizontally
+        # Make the width match the keypad width (3 buttons at 75px each + 2 spacings at 12px each)
+        self.pin_entry.set_size_request(249, -1)  # 3*75 + 2*12 = 249px
         pin_box.pack_start(self.pin_entry, True, True, 0)
 
         form_box.pack_start(pin_box, False, False, 0)
@@ -197,7 +202,8 @@ class PinEntryWindow(BaseWindow):
             
             #username_display {{
                 font-family: "Inter", sans-serif;
-                font-size: 18px;
+                font-size: 24px;
+                font-weight: bold;
                 color: {Colors.FONT};
                 margin: 0;
                 padding: 0;
