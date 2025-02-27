@@ -40,7 +40,7 @@ class HomeWindow(BaseWindow):
         # NFC Image
         logo_image = Gtk.Image.new_from_file("img/nfc_pfeil.png")
         logo_image.set_margin_top(20)
-        logo_image.set_margin_bottom(20)
+        logo_image.set_margin_bottom(10)
         mid_container.pack_start(logo_image, False, False, 0)
 
         # Explanation text
