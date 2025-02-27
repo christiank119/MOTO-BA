@@ -5,6 +5,8 @@ import requests
 import logging
 from datetime import datetime
 
+from view.base import BaseWindow, Colors
+
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk, GLib
 
@@ -12,14 +14,6 @@ class RoomState(Enum):
     IDLE = "idle"
     LOADING = "loading"
     ERROR = "error"
-
-class Colors:
-    BACKGROUND = "#f6f4f3"
-    FONT = "#1b2021"
-    HELP_BUTTON = "#ffffff"
-    LIST_BACKGROUND = "#D9D9D9"
-    GREEN = "#83cd2d"
-    RED = "#ff3130"
 
 class Config:
     API_BASE_URL = "https://127.0.0.1:8000/api"  # Note the https
@@ -35,96 +29,69 @@ class RoomData:
         self.color = color
         self.activity = activity  # Activity information with default value "keine"
 
-class Choose_RoomWindow(Gtk.Box):
+class Choose_RoomWindow(BaseWindow):
+    """Room selection window for choosing which room to assign to the device"""
+    
     def __init__(self, parent_window: Gtk.Window) -> None:
-        super().__init__(homogeneous=False, spacing=20)
-        self.set_orientation(Gtk.Orientation.VERTICAL)
-
-        self.parent_window = parent_window
+        super().__init__(parent_window, title="Raumauswahl")
         self._state = RoomState.IDLE
         self._rooms = []
-
-        self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(logging.INFO)
-        if not self.logger.handlers:
-            handler = logging.StreamHandler()
-            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-            handler.setFormatter(formatter)
-            self.logger.addHandler(handler)
-
         self._init_ui()
         self._apply_styles()
 
         # Set up room refresh
         GLib.timeout_add_seconds(30, self._refresh_rooms)
         GLib.idle_add(self._load_rooms)
-
-        self.show_all()
+        
         self.logger.info("Choose_RoomWindow initialization complete")
 
     def _init_ui(self) -> None:
+        """Initialize the UI components"""
         self.logger.info("Starting UI initialization")
-
-        self.set_margin_top(30)
-        self.set_margin_bottom(0)
-        self.set_margin_start(20)
-        self.set_margin_end(20)
-
-        # Header
-        header_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
-        header_box.set_margin_bottom(20)
 
         # Logout button - Now with logout handler
         logout_button = Gtk.Button(label="Abmelden")
         logout_button.set_name("help_button")
-        logout_button.set_halign(Gtk.Align.START)
-        logout_button.connect("clicked", self._on_logout_clicked)  # Added click handler
-        header_box.pack_start(logout_button, False, False, 0)
+        logout_button.connect("clicked", self._on_logout_clicked)
+        self.header_box.pack_start(logout_button, False, False, 0)
 
-        help_button = Gtk.Button(label="HILFE")
-        help_button.set_name("help_button")
-        help_button.connect("clicked", self._show_help_dialog)
-        header_box.pack_end(help_button, False, False, 0)
-
+        # Add refresh button to header
         refresh_button = Gtk.Button(label="Aktualisieren")
         refresh_button.set_name("help_button")
         refresh_button.connect("clicked", lambda _: self._load_rooms())
-        header_box.pack_end(refresh_button, False, False, 0)
-
-        self.pack_start(header_box, False, True, 0)
+        self.header_box.pack_end(refresh_button, False, False, 10)
 
         # Header title
         title = Gtk.Label(label="Hallo VORNAME")
-        title.set_name("big_heading")
+        title.set_name("heading_type1")
         title.set_halign(Gtk.Align.START)
-        self.pack_start(title, False, True, 0)
+        self.content_container.pack_start(title, False, True, 0)
 
         # Subtitle
         subtitle = Gtk.Label(label="Bitte ordne dem Gerät einen Raum zu:")
         subtitle.set_name("big_subheading")
         subtitle.set_halign(Gtk.Align.START)
         subtitle.set_margin_bottom(20)
-        self.pack_start(subtitle, False, True, 0)
+        self.content_container.pack_start(subtitle, False, True, 0)
 
-        # Room list
+        # Room list container
         self.room_list = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
-        self.room_list.set_margin_start(10)
-        self.room_list.set_margin_end(0)
         self.room_list.set_name("room_list")
 
+        # Scrollable container for room list
         scrolled = Gtk.ScrolledWindow()
         scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         scrolled.set_name("room_scrolled_window")
         scrolled.set_vexpand(True)
         scrolled.set_hexpand(True)
         scrolled.add(self.room_list)
-        self.pack_start(scrolled, True, True, 0)
+        self.content_container.pack_start(scrolled, True, True, 0)
 
         # Status bar
         self.status_bar = Gtk.Label(label="Zuletzt aktualisiert: 28.12.2024 12:00")
         self.status_bar.set_name("status_bar")
-        self.status_bar.set_margin_bottom(10)
-        self.pack_end(self.status_bar, False, True, 0)
+        self.status_bar.set_margin_top(10)
+        self.content_container.pack_end(self.status_bar, False, False, 0)
 
     # New method to handle logout button click
     def _on_logout_clicked(self, button: Gtk.Button) -> None:
@@ -257,19 +224,9 @@ class Choose_RoomWindow(Gtk.Box):
             self.logger.error("Parent window does not support switching views")
 
     def _apply_styles(self) -> None:
+        """Apply custom CSS styles"""
         css_provider = Gtk.CssProvider()
         css = f"""
-            box {{
-                background: {Colors.BACKGROUND};
-            }}
-            
-            #big_heading {{
-                font-family: "Inter", sans-serif;
-                font-size: 48px;
-                font-weight: bold;
-                color: {Colors.FONT};
-            }}
-            
             #big_subheading {{
                 font-family: "Inter", sans-serif;
                 font-size: 24px;
@@ -290,7 +247,6 @@ class Choose_RoomWindow(Gtk.Box):
                 margin: 5px 0;
                 border-radius: 18px;
                 box-shadow: rgba(0, 0, 0, 0.18) 0px 2px 4px;
-                
             }}
             
             #room_info_label {{
@@ -299,12 +255,11 @@ class Choose_RoomWindow(Gtk.Box):
                 color: {Colors.FONT};
             }}
                 
-            #room_list{{
+            #room_list {{
                 background: inherit;
                 border-radius: 40px;
             }}
             
-        
             #select_button {{
                 font-family: "Inter", sans-serif;
                 font-size: 20px;
@@ -318,27 +273,13 @@ class Choose_RoomWindow(Gtk.Box):
             
             #occupied_button {{
                 font-family: "Inter", sans-serif;
-                background: {Colors.RED};
+                background: {Colors.ERROR};
                 color: {Colors.FONT};
                 border: none;
                 border-radius: 10px;
                 padding: 8px 16px;
                 box-shadow: rgba(0, 0, 0, 0.18) 0px 2px 4px;
             }}
-            
-            #help_button {{
-                font-family: "Inter", sans-serif;
-                background: {Colors.HELP_BUTTON};
-                color: {Colors.FONT};
-                border: 2px solid {Colors.FONT};
-                border-radius: 45px;
-                padding: 5px 15px;
-                font-size: 20px;
-                box-shadow: rgba(0, 0, 0, 0.18) 0px 2px 4px;
-            }}
-            
-            
-        
             
             #status_bar {{
                 font-family: "Inter", sans-serif;
@@ -353,18 +294,8 @@ class Choose_RoomWindow(Gtk.Box):
             Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
         )
 
-    def _show_help_dialog(self, button: Gtk.Button) -> None:
-        dialog = Gtk.MessageDialog(
-            transient_for=self.parent_window,
-            flags=0,
-            message_type=Gtk.MessageType.INFO,
-            buttons=Gtk.ButtonsType.OK,
-            text="Was muss ich in diesem Anzeigefenster beachten?"
-        )
-        dialog.format_secondary_text(
-            "In dieser Ansicht können Sie dem Gerät einen verfügbaren Raum zuweisen, "
-            "um eine Aktivität zu erstellen. Verfügbare Räume erkennen Sie an der "
-            "grünen Schaltfläche \"Auswählen\"."
-        )
-        dialog.run()
-        dialog.destroy()
+    def get_help_text(self) -> str:
+        """Provide help text for room selection screen"""
+        return ("In dieser Ansicht können Sie dem Gerät einen verfügbaren Raum zuweisen, "
+                "um eine Aktivität zu erstellen. Verfügbare Räume erkennen Sie an der "
+                "grünen Schaltfläche \"Auswählen\".") 
