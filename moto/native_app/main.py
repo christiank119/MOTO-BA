@@ -1,10 +1,13 @@
 import gi
-import logging
 import uuid
+import os
 from typing import Optional, Dict, Type, Callable
 
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
+
+# Import centralized logging utilities
+from utils import get_logger, log_operation, logger_factory
 
 # Import all view classes
 from view.login import LoginWindow
@@ -33,7 +36,7 @@ class MainWindow(Gtk.Window):
         self.fullscreen()
         
         # Setup logging
-        self.logger = self._setup_logging()
+        self.logger = get_logger("MainWindow")
         self.logger.info("Initializing MainWindow")
         
         # State management
@@ -58,16 +61,6 @@ class MainWindow(Gtk.Window):
         else:
             self.switch_page("login")
     
-    def _setup_logging(self) -> logging.Logger:
-        """Initialize logging configuration"""
-        logger = logging.getLogger("MainWindow")
-        logger.setLevel(logging.INFO)
-        if not logger.handlers:
-            handler = logging.StreamHandler()
-            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-            handler.setFormatter(formatter)
-            logger.addHandler(handler)
-        return logger
         
     def _generate_device_id(self) -> str:
         """Generate a unique device identifier or load existing one"""
@@ -84,20 +77,24 @@ class MainWindow(Gtk.Window):
         self.main_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.overlay_container.add(self.main_container)
 
+    @log_operation(log_level="debug")
     def user_is_authenticated(self) -> bool:
         """Check if the user is authenticated based on access token."""
         return self.access_token is not None
 
+    @log_operation
     def set_auth_tokens(self, access_token: str, refresh_token: str) -> None:
         """Set the authentication tokens after successful login."""
         self.logger.info("Setting authentication tokens")
         self.access_token = access_token
         self.refresh_token = refresh_token
 
+    @log_operation(log_level="debug")
     def get_device_id(self) -> str:
         """Return the unique device identifier."""
         return self._device_id
 
+    @log_operation
     def show_overlay(self, overlay_class: Type[Gtk.Widget], **kwargs) -> None:
         """Generic method to show an overlay with the specified parameters"""
         self.logger.info(f"Showing overlay: {overlay_class.__name__}")
@@ -150,6 +147,7 @@ class MainWindow(Gtk.Window):
         """Switch to go home view"""
         self._switch_view(GoHomeWindow)
 
+    @log_operation(log_args=True)
     def switch_page(self, page_name: str) -> None:
         """Switch the current view to the specified page."""
         self.logger.info(f"Switching to page: {page_name}")
@@ -193,8 +191,71 @@ class MainWindow(Gtk.Window):
 
         self.main_container.show_all()
 
+def load_env_file():
+    """Load environment variables from .env file"""
+    env_path = os.path.join(os.path.dirname(__file__), '.env')
+    if os.path.exists(env_path):
+        with open(env_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#'):
+                    key, value = line.split('=', 1)
+                    os.environ[key.strip()] = value.strip()
+
+def configure_logging():
+    """Configure logging based on environment variables"""
+    import logging
+    
+    # Create logs directory if it doesn't exist
+    log_dir = os.environ.get('MOTO_LOG_DIR', 'logs')
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+    
+    # Map log level strings to logging module constants
+    log_levels = {
+        'debug': logging.DEBUG,
+        'info': logging.INFO,
+        'warning': logging.WARNING,
+        'error': logging.ERROR,
+        'critical': logging.CRITICAL
+    }
+    
+    # Get log settings from environment variables
+    log_enabled = os.environ.get('MOTO_LOGGING_ENABLED', 'true').lower() == 'true'
+    console_enabled = os.environ.get('MOTO_CONSOLE_LOGGING', 'true').lower() == 'true'
+    file_enabled = os.environ.get('MOTO_FILE_LOGGING', 'true').lower() == 'true'
+    console_level = os.environ.get('MOTO_CONSOLE_LOG_LEVEL', 'info').lower()
+    file_level = os.environ.get('MOTO_FILE_LOG_LEVEL', 'debug').lower()
+    
+    # Configure logging
+    logger_factory.update_config({
+        'console_log_level': log_levels.get(console_level, logging.INFO),
+        'file_log_level': log_levels.get(file_level, logging.DEBUG),
+        'log_dir': log_dir,
+        'enabled': log_enabled,
+        'console_enabled': console_enabled,
+        'file_enabled': file_enabled
+    })
+
 if __name__ == "__main__":
-    win = MainWindow()
-    win.connect("destroy", Gtk.main_quit)
-    win.show_all()
-    Gtk.main()
+    # Load environment variables
+    load_env_file()
+    
+    # Configure logging
+    import logging
+    configure_logging()
+    
+    # Log application startup
+    logger = get_logger("main")
+    logger.info("==== MOTO Native App Starting ====")
+    
+    try:
+        win = MainWindow()
+        win.connect("destroy", Gtk.main_quit)
+        win.show_all()
+        Gtk.main()
+    except Exception as e:
+        logger.critical(f"Unhandled exception in main: {str(e)}", exc_info=True)
+        raise
+    finally:
+        logger.info("==== MOTO Native App Exiting ====")

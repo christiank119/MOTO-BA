@@ -1,9 +1,11 @@
 import gi
 from typing import Optional, Callable
-import logging
 
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk
+
+# Import centralized logging utilities
+from utils import get_logger, log_operation
 
 class Colors:
     """Centralized color constants"""
@@ -34,16 +36,9 @@ class BaseWindow(Gtk.Box):
         self._init_base_ui()
         self._apply_base_styles()
     
-    def _setup_logging(self) -> logging.Logger:
-        """Initialize logging configuration"""
-        logger = logging.getLogger(self.__class__.__name__)
-        logger.setLevel(logging.INFO)
-        if not logger.handlers:
-            handler = logging.StreamHandler()
-            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-            handler.setFormatter(formatter)
-            logger.addHandler(handler)
-        return logger
+    def _setup_logging(self) -> None:
+        """Initialize logging for this view"""
+        return get_logger(self.__class__.__name__)
     
     def _init_base_ui(self) -> None:
         """Initialize the base UI structure"""
@@ -141,12 +136,16 @@ class BaseWindow(Gtk.Box):
             Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
         )
     
+    @log_operation(log_args=True)
     def show_error(self, message: str) -> None:
         """Display error message in the standard error label"""
         self.error_label.set_text(message)
         self.content_container.pack_end(self.error_label, False, False, 0)
         self.error_label.show()
+        # Also log the error to ensure it's captured
+        self.logger.warning(f"UI Error displayed: {message}")
     
+    @log_operation
     def _show_help_dialog(self, button: Gtk.Button) -> None:
         """Show help dialog with content specific to the child class"""
         help_text = self.get_help_text()
