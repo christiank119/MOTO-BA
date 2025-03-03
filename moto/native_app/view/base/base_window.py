@@ -15,6 +15,8 @@ class Colors:
     HELP_BUTTON = "#ffffff"
     INPUT_BG = "rgba(217, 217, 217, 0.5)"
     GREEN = "#83cd2d"
+    BLUE = "#5080D8"
+    ORANGE = "#F78C10"
     KEYPAD_BUTTON = "rgba(217, 217, 217, 0.75)"
     LIST_BACKGROUND = "#D9D9D9"
 

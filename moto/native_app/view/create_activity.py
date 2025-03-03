@@ -68,6 +68,7 @@ class CreateActivityWindow(BaseWindow):
         activity_label = Gtk.Label(label="Aktivitätsname:")
         activity_label.set_xalign(0)
         self.activity_entry = Gtk.Entry()
+        self.activity_entry.set_name("entry_field")
         self.activity_entry.set_placeholder_text("Aktivitätsname")
 
         form_grid.attach(activity_label, 0, 1, 1, 1)  # Column 0, Row 1
@@ -91,7 +92,9 @@ class CreateActivityWindow(BaseWindow):
         capacity_label = Gtk.Label(label="Maximale Kinderanzahl:")
         capacity_label.set_xalign(0)
         self.capacity_entry = Gtk.Entry()
+        self.capacity_entry.set_name("entry_field")
         self.capacity_entry.set_placeholder_text("Maximale Anzahl")
+
 
         form_grid.attach(capacity_label, 0, 3, 1, 1)  # Column 0, Row 3
         form_grid.attach(self.capacity_entry, 1, 3, 1, 1)  # Column 1, Row 3
@@ -133,6 +136,10 @@ class CreateActivityWindow(BaseWindow):
             #form_grid * {{
                 font-family: "Inter", sans-serif;
                 font-size: 24px;
+            }}
+            
+            #entry_field {{
+                min-height: 42px;
             }}
             
             #submit_button {{

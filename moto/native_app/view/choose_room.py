@@ -63,7 +63,7 @@ class Choose_RoomWindow(BaseWindow):
 
         # Header title
         title = Gtk.Label(label="Hallo VORNAME")
-        title.set_name("heading_type1")
+        title.set_name("big_heading")
         title.set_halign(Gtk.Align.START)
         self.content_container.pack_start(title, False, True, 0)
 
@@ -195,7 +195,7 @@ class Choose_RoomWindow(BaseWindow):
                 room_box.set_margin_bottom(5)
 
                 # Single-line room info with room number and activity
-                room_info_label = Gtk.Label(label=f"Raum {room.raum_nr} - Aktivität: {room.activity}")
+                room_info_label = Gtk.Label(label=f"Raum {room.raum_nr} - Aktuelle Aktivität: {room.activity}")
                 room_info_label.set_name("room_info_label")
                 room_info_label.set_halign(Gtk.Align.START)
                 room_box.pack_start(room_info_label, True, True, 10)
@@ -227,9 +227,16 @@ class Choose_RoomWindow(BaseWindow):
         """Apply custom CSS styles"""
         css_provider = Gtk.CssProvider()
         css = f"""
+            #big_heading {{
+                font-family: "Inter", sans-serif;
+                font-size: 48px;
+                font-weight: 600;
+                color: {Colors.FONT};
+            }}
+            
             #big_subheading {{
                 font-family: "Inter", sans-serif;
-                font-size: 24px;
+                font-size: 32px;
                 color: {Colors.FONT};
             }}
             
@@ -242,7 +249,7 @@ class Choose_RoomWindow(BaseWindow):
             
             #room_container {{
                 font-family: "Inter", sans-serif;
-                background: {Colors.LIST_BACKGROUND};
+                background: {Colors.KEYPAD_BUTTON};
                 padding: 18px;
                 margin: 5px 0;
                 border-radius: 18px;
@@ -263,6 +270,7 @@ class Choose_RoomWindow(BaseWindow):
             #select_button {{
                 font-family: "Inter", sans-serif;
                 font-size: 20px;
+                font-weight: bold;
                 background: {Colors.GREEN};
                 color: {Colors.FONT};
                 border: none;

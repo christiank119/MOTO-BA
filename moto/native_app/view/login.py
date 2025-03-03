@@ -70,8 +70,7 @@ class LoginWindow(BaseWindow):
         self.user_combo.set_name("user_dropdown")
         # Add placeholder
         self.user_combo.append_text("Bitte auswählen...")
-        # Add users - these would come from an API in a real implementation
-        self.user_combo.append_text("root")
+        self.user_combo.append_text("root") # TODO: Populate from API
         self.user_combo.append_text("Max Mustermann")
         self.user_combo.append_text("Erika Musterfrau")
         self.user_combo.set_active(0)
@@ -120,7 +119,6 @@ class LoginWindow(BaseWindow):
                 font-size: 24px;
                 padding: 8px;
                 border-radius: 10px;
-                background: {Colors.INPUT_BG};
                 color: {Colors.FONT};
                 margin: 5px 0;
             }}

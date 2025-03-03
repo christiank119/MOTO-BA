@@ -11,16 +11,19 @@ from view.base.overlay import BaseOverlay
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk, GLib
 
+
 class RoomState(Enum):
     IDLE = "idle"
     LOADING = "loading"
     ERROR = "error"
+
 
 class Config:
     API_BASE_URL = "https://127.0.0.1:8000/api"  # Note the https
     ROOMS_ENDPOINT = "/get_room_list/"
     VERIFY_SSL = False
     REQUEST_TIMEOUT = 10
+
 
 class RoomData:
     def __init__(self, id: int, raum_nr: str, is_occupied: bool, color: str, activity: str = "keine"):
@@ -29,6 +32,7 @@ class RoomData:
         self.is_occupied = is_occupied
         self.color = color
         self.activity = activity  # Activity information with default value "keine"
+
 
 class MergeRoomOverlay(BaseOverlay):
     """Overlay for room merging confirmation"""
@@ -47,10 +51,6 @@ class MergeRoomOverlay(BaseOverlay):
         content_box.set_name("overlay_content")
         content_box.set_valign(Gtk.Align.CENTER)
         content_box.set_halign(Gtk.Align.CENTER)
-        content_box.set_margin_top(20)
-        content_box.set_margin_bottom(20)
-        content_box.set_margin_start(20)
-        content_box.set_margin_end(20)
 
         # Title
         title = Gtk.Label(label="Raumzusammenführung")
@@ -60,7 +60,8 @@ class MergeRoomOverlay(BaseOverlay):
         # Message
         message = Gtk.Label()
         message.set_name("overlay_message")
-        message.set_markup(f"Der aktuelle Raum <b>{self.current_room}</b> wird mit Raum <b>{self.target_room}</b> zusammengeführt.\n\nDieses Gerät wird anschließend abgemeldet.")
+        message.set_markup(
+            f"Der aktuelle Raum <b>{self.current_room}</b> wird mit Raum <b>{self.target_room}</b> zusammengeführt.\n\nDieses Gerät wird anschließend abgemeldet.")
         message.set_line_wrap(True)
         message.set_max_width_chars(40)
         content_box.pack_start(message, False, False, 10)
@@ -130,26 +131,29 @@ class MergeRoomOverlay(BaseOverlay):
         self.parent_window.refresh_token = None
         self.parent_window.switch_page("login")
 
+
 class Set_MergedRoom(BaseWindow):
     """Room merging window for combining two rooms"""
-    
+
     def __init__(self, parent_window: Gtk.Window) -> None:
         super().__init__(parent_window, title="Räume zusammenführen")
         self._state = RoomState.IDLE
         self._rooms = []
         self.current_room = "Raum 101"  # Current room the device is registered to
-        
+
         # Create the overlay before initializing UI
         self.overlay = Gtk.Overlay()
-        
+
         self._init_ui()
         self._apply_styles()
 
         # Set up room refresh
         GLib.timeout_add_seconds(30, self._refresh_rooms)
         GLib.idle_add(self._load_rooms)
-        
+
         self.logger.info("Set_MergedRoom initialization complete")
+
+
 
     def _init_ui(self) -> None:
         """Initialize the UI components"""
@@ -167,11 +171,14 @@ class Set_MergedRoom(BaseWindow):
         refresh_button.connect("clicked", lambda _: self._load_rooms())
         self.header_box.pack_end(refresh_button, False, False, 10)
 
+        if self.content_container.get_parent():
+            self.content_container.get_parent().remove(self.content_container)
+
         # Main container for overlay
         main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         main_box.set_hexpand(True)
         main_box.set_vexpand(True)
-        
+
         # Header title - Show current room information
         title = Gtk.Label(label=f"Aktueller Raum: {self.current_room}")
         title.set_name("heading_type1")
@@ -203,16 +210,30 @@ class Set_MergedRoom(BaseWindow):
         self.status_bar.set_name("status_bar")
         self.status_bar.set_margin_top(10)
         self.content_container.pack_end(self.status_bar, False, False, 0)
-        
+
         # Set up overlay container for confirmation dialogs
         self.overlay = Gtk.Overlay()
         self.overlay.add(self.content_container)
-        
+
         # Add the overlay to the main content container
         main_box.pack_start(self.overlay, True, True, 0)
-        
-        # Replace the content container with the overlay version
-        self.content_container.reparent(self.overlay)
+
+        # Create a new overlay
+        self.overlay = Gtk.Overlay()
+        self.overlay.set_size_request(1217, 660)
+
+        # Get the fixed container (parent of content_container)
+        fixed_container = self.get_children()[0]  # The BaseWindow adds a fixed container as its only child
+
+        # Remove the content_container from the fixed_container
+        if self.content_container.get_parent():
+            self.content_container.get_parent().remove(self.content_container)
+
+        # Add content_container to the overlay
+        self.overlay.add(self.content_container)
+
+        # Add the overlay to the fixed container
+        fixed_container.put(self.overlay, 0, 0)
 
     def _on_back_clicked(self, button: Gtk.Button) -> None:
         """Handle back button click"""
@@ -238,22 +259,28 @@ class Set_MergedRoom(BaseWindow):
                 {
                     "kategorie": "Klassenräume",
                     "raeume": [
-                        RoomData(id=102, raum_nr="102", is_occupied=False, color="#FFFFFF", activity=sample_activities[102]),
-                        RoomData(id=103, raum_nr="103", is_occupied=True, color="#FFFFFF", activity=sample_activities[103]),
-                        RoomData(id=104, raum_nr="104", is_occupied=False, color="#FFFFFF", activity=sample_activities[104]),
+                        RoomData(id=102, raum_nr="102", is_occupied=False, color="#FFFFFF",
+                                 activity=sample_activities[102]),
+                        RoomData(id=103, raum_nr="103", is_occupied=True, color="#FFFFFF",
+                                 activity=sample_activities[103]),
+                        RoomData(id=104, raum_nr="104", is_occupied=False, color="#FFFFFF",
+                                 activity=sample_activities[104]),
                     ]
                 },
                 {
                     "kategorie": "Fachräume",
                     "raeume": [
-                        RoomData(id=201, raum_nr="201", is_occupied=False, color="#FFFFFF", activity=sample_activities[201]),
-                        RoomData(id=202, raum_nr="202", is_occupied=True, color="#FFFFFF", activity=sample_activities[202]),
+                        RoomData(id=201, raum_nr="201", is_occupied=False, color="#FFFFFF",
+                                 activity=sample_activities[201]),
+                        RoomData(id=202, raum_nr="202", is_occupied=True, color="#FFFFFF",
+                                 activity=sample_activities[202]),
                     ]
                 },
                 {
                     "kategorie": "Sporthallen",
                     "raeume": [
-                        RoomData(id=301, raum_nr="Sporthalle 1", is_occupied=False, color="#FFFFFF", activity=sample_activities[301]),
+                        RoomData(id=301, raum_nr="Sporthalle 1", is_occupied=False, color="#FFFFFF",
+                                 activity=sample_activities[301]),
                     ]
                 }
             ]
@@ -267,7 +294,6 @@ class Set_MergedRoom(BaseWindow):
         except Exception as e:
             self.logger.error(f"Failed to load rooms: {e}")
             self._state = RoomState.ERROR
-
 
     def _update_room_list(self) -> None:
         for child in self.room_list.get_children():
@@ -309,7 +335,6 @@ class Set_MergedRoom(BaseWindow):
 
         self.room_list.show_all()
 
-
     def _refresh_rooms(self) -> bool:
         self._load_rooms()
         return True
@@ -342,7 +367,7 @@ class Set_MergedRoom(BaseWindow):
             
             #room_container {{
                 font-family: "Inter", sans-serif;
-                background: {Colors.LIST_BACKGROUND};
+                background: {Colors.KEYPAD_BUTTON};
                 padding: 18px;
                 margin: 5px 0;
                 border-radius: 18px;
