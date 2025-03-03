@@ -327,7 +327,7 @@ class PinEntryWindow(BaseWindow):
         self._state = PinState.SUCCESS
 
         # Navigate to room selection after successful login
-        GLib.timeout_add(500, self.parent_window.switch_page, "set_merged_room")
+        GLib.timeout_add(500, self.parent_window.switch_page, "choose_room")
 
     def _set_loading_state(self, is_loading: bool) -> None:
         """Update UI for loading state"""
