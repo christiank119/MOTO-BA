@@ -158,6 +158,7 @@ class MainWindow(Gtk.Window):
             "login": (LoginWindow, {}),
             "pin_entry": (PinEntryWindow, {}),
             "choose_room": (Choose_RoomWindow, {}),
+            "create_activity": (CreateActivityWindow, {"room_id": self.current_room_id}),
             "home": (HomeWindow, {"room_id": self.current_room_id or "2"}),  # Default for development
             "go_home": (GoHomeWindow, {}),
             "set_nfc_scan": (SetNFCScanOverlay, {}),

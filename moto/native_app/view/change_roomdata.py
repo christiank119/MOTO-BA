@@ -24,6 +24,11 @@ class ChangeRoomDataWindow(BaseWindow):
         self.header_box.pack_start(back_button, False, False, 0)
 
         # Title and subtitle
+        title = Gtk.Label(label="Daten für Raum X")
+        title.set_name("heading")
+        title.set_halign(Gtk.Align.START)
+        self.content_container.pack_start(title, False, False, 0)
+
         subtitle = Gtk.Label(label="Ändern Sie bei Bedarf folgende Informationen:")
         subtitle.set_name("subheading")
         subtitle.set_halign(Gtk.Align.START)
@@ -102,27 +107,25 @@ class ChangeRoomDataWindow(BaseWindow):
         self._create_form_row(2, "AG-Kategorie:", current_data["category"], True, categories)
         self._create_form_row(3, "Maximale Kinderanzahl:", current_data["capacity"])
 
-    def _show_help_dialog(self, button: Gtk.Button) -> None:
-        """Show a help dialog explaining this screen"""
-        dialog = Gtk.MessageDialog(
-            transient_for=self.parent_window,
-            flags=0,
-            message_type=Gtk.MessageType.INFO,
-            buttons=Gtk.ButtonsType.OK,
-            text="Was muss ich in diesem Anzeigefenster beachten?"
-        )
-        dialog.format_secondary_text(
-            "In dieser Ansicht können Sie bei Bedarf die Rauminformationen ändern. "
-            "Geben Sie hierzu Ihre neuen Daten in das entsprechende Eingabefeld ein. "
-            "Tippen Sie auf \"Ändern\", um die neuen Daten zu speichern."
-        )
-        dialog.run()
-        dialog.destroy()
+
+    def get_help_text(self) -> str:
+        """Provide help text for login screen"""
+        return ("In dieser Ansicht können Sie bei Bedarf die Rauminformationen ändern. "
+                "Geben Sie hierzu Ihre neuen Daten in das entsprechende Eingabefeld ein. "
+                "Tippen Sie auf \"Ändern\", um die neuen Daten zu speichern.")
 
     def _apply_styles(self) -> None:
         """Apply consistent UI styles"""
         css_provider = Gtk.CssProvider()
         css = f"""
+            
+            #heading {{
+                font-family: "Inter", sans-serif;
+                font-size: 48px;
+                font-weight: bold;
+                color: {Colors.FONT};
+            }}
+            
             #subheading {{
                 font-family: "Inter", sans-serif;
                 font-size: 32px;

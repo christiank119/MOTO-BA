@@ -22,12 +22,12 @@ class MasterTabletWindow(BaseWindow):
 
         # Title and subtitle
         title = Gtk.Label(label="Einstellungen")
-        title.set_name("heading_2")
+        title.set_name("heading")
         title.set_halign(Gtk.Align.START)
         self.content_container.pack_start(title, False, False, 0)
 
         subtitle = Gtk.Label(label="Wählen Sie eine der folgenden Aktionen aus:")
-        subtitle.set_name("subheading_2")
+        subtitle.set_name("subheading")
         subtitle.set_halign(Gtk.Align.START)
         self.content_container.pack_start(subtitle, False, False, 0)
 
@@ -58,14 +58,14 @@ class MasterTabletWindow(BaseWindow):
     def _apply_styles(self) -> None:
         css_provider = Gtk.CssProvider()
         css = f"""
-            #heading_2 {{
+            #heading {{
                 font-family: "Inter", sans-serif;
                 font-size: 48px;
-                font-weight: 600;
+                font-weight: bold;
                 color: {Colors.FONT};
             }}
             
-            #subheading_2 {{
+            #subheading {{
                 font-family: "Inter", sans-serif;
                 font-size: 32px;
                 color: {Colors.FONT};

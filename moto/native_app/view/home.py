@@ -19,8 +19,8 @@ class HomeWindow(BaseWindow):
     def _init_ui(self) -> None:
         """Initialize the UI components"""
         # Settings button in header
-        settings_button = Gtk.Button(label="Einstellungen")
-        settings_button.set_name("help_button")
+        settings_button = Gtk.Button(label="Anmelden")
+        settings_button.set_name("settings_button")
         settings_button.connect("clicked", self._on_login_clicked)
         self.header_box.pack_end(settings_button, False, False, 0)
 
@@ -34,13 +34,13 @@ class HomeWindow(BaseWindow):
         # Room number
         room_label = Gtk.Label()
         room_label.set_markup(f"Raum {self.room_id}")
-        room_label.set_name("heading_type1")
+        room_label.set_name("heading_type2")
         mid_container.pack_start(room_label, False, False, 10)
 
         # NFC Image
         logo_image = Gtk.Image.new_from_file("img/nfc_pfeil.png")
-        logo_image.set_margin_top(20)
-        logo_image.set_margin_bottom(10)
+       # logo_image.set_margin_top(20)
+       # logo_image.set_margin_bottom(10)
         mid_container.pack_start(logo_image, False, False, 0)
 
         # Explanation text
@@ -66,7 +66,23 @@ class HomeWindow(BaseWindow):
             #mid_container {{
                 margin: 0px;
             }}
-            
+            #settings_button {{
+                font-family: "Inter", sans-serif;
+                background: {Colors.HELP_BUTTON};
+                color: {Colors.FONT};
+                border: 2px solid {Colors.FONT};
+                border-radius: 45px;
+                padding: 10px 25px;
+                margin-right: 10px;
+                font-size: 20px;
+                box-shadow: rgba(0, 0, 0, 0.18) 0px 2px 4px;
+            }}
+            #heading_type2 {{
+                font-family: "Inter", sans-serif;
+                font-size: 60px;
+                font-weight: bold;
+                color: {Colors.FONT};
+            }}
             #explanation {{
                 font-family: "Inter", sans-serif;
                 font-size: 25px;

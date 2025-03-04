@@ -93,7 +93,7 @@ class RemoveTabletOverlay(BaseWindow):
                 margin-top: 20px;
                 padding: 10px 40px;
                 min-width: 200px;
-                min-height: 80px;
+                min-height: 20px;
                 box-shadow: rgba(0, 0, 0, 0.36) 0px 6px 20px 2px;
                 background: {Colors.ORANGE};
                 color: white;

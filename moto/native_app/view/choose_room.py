@@ -51,13 +51,13 @@ class Choose_RoomWindow(BaseWindow):
 
         # Logout button - Now with logout handler
         logout_button = Gtk.Button(label="Abmelden")
-        logout_button.set_name("help_button")
+        logout_button.set_name("back_button")
         logout_button.connect("clicked", self._on_logout_clicked)
         self.header_box.pack_start(logout_button, False, False, 0)
 
         # Add refresh button to header
         refresh_button = Gtk.Button(label="Aktualisieren")
-        refresh_button.set_name("help_button")
+        refresh_button.set_name("back_button")
         refresh_button.connect("clicked", lambda _: self._load_rooms())
         self.header_box.pack_end(refresh_button, False, False, 10)
 

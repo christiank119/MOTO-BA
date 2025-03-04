@@ -8,6 +8,7 @@ from datetime import datetime
 from view.base import BaseWindow, Colors
 from view.base.overlay import BaseOverlay
 
+
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk, GLib
 
@@ -171,14 +172,6 @@ class Set_MergedRoom(BaseWindow):
         refresh_button.connect("clicked", lambda _: self._load_rooms())
         self.header_box.pack_end(refresh_button, False, False, 10)
 
-        if self.content_container.get_parent():
-            self.content_container.get_parent().remove(self.content_container)
-
-        # Main container for overlay
-        main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        main_box.set_hexpand(True)
-        main_box.set_vexpand(True)
-
         # Header title - Show current room information
         title = Gtk.Label(label=f"Aktueller Raum: {self.current_room}")
         title.set_name("heading_type1")
@@ -210,30 +203,6 @@ class Set_MergedRoom(BaseWindow):
         self.status_bar.set_name("status_bar")
         self.status_bar.set_margin_top(10)
         self.content_container.pack_end(self.status_bar, False, False, 0)
-
-        # Set up overlay container for confirmation dialogs
-        self.overlay = Gtk.Overlay()
-        self.overlay.add(self.content_container)
-
-        # Add the overlay to the main content container
-        main_box.pack_start(self.overlay, True, True, 0)
-
-        # Create a new overlay
-        self.overlay = Gtk.Overlay()
-        self.overlay.set_size_request(1217, 660)
-
-        # Get the fixed container (parent of content_container)
-        fixed_container = self.get_children()[0]  # The BaseWindow adds a fixed container as its only child
-
-        # Remove the content_container from the fixed_container
-        if self.content_container.get_parent():
-            self.content_container.get_parent().remove(self.content_container)
-
-        # Add content_container to the overlay
-        self.overlay.add(self.content_container)
-
-        # Add the overlay to the fixed container
-        fixed_container.put(self.overlay, 0, 0)
 
     def _on_back_clicked(self, button: Gtk.Button) -> None:
         """Handle back button click"""
@@ -339,14 +308,25 @@ class Set_MergedRoom(BaseWindow):
         self._load_rooms()
         return True
 
+    def _show_overlay(self, overlay_content):
+
+        # Remove any existing overlays
+        for child in self.overlay.get_children():
+            if isinstance(child, (MergeRoomOverlay, BaseOverlay)):
+                self.overlay.remove(child)
+
+        # Add the new overlay
+        self.overlay.add_overlay(overlay_content)
+        overlay_content.show_all()
+
+
     def _on_room_selected(self, button: Gtk.Button, room_id: int, room_name: str) -> None:
         """Handle room selection for merging"""
         self.logger.info(f"Room {room_id} selected for merging with current room")
 
         # Show the merge confirmation overlay
         merge_overlay = MergeRoomOverlay(self.parent_window, self.current_room, room_name)
-        self.overlay.add_overlay(merge_overlay)
-        merge_overlay.show_all()
+        self._show_overlay(merge_overlay)
 
     def _apply_styles(self) -> None:
         """Apply custom CSS styles"""
@@ -388,6 +368,7 @@ class Set_MergedRoom(BaseWindow):
             #select_button {{
                 font-family: "Inter", sans-serif;
                 font-size: 20px;
+                font-weight: bold;
                 background: {Colors.GREEN};
                 color: {Colors.FONT};
                 border: none;
@@ -398,6 +379,7 @@ class Set_MergedRoom(BaseWindow):
             
             #occupied_button {{
                 font-family: "Inter", sans-serif;
+                font-weight: bold;
                 background: {Colors.ERROR};
                 color: {Colors.FONT};
                 border: none;
