@@ -157,7 +157,7 @@ class LoginWindow(BaseWindow):
         self.parent_window.selected_username = selected_user
 
         # Switch to PIN entry view
-        self.parent_window.switch_page("set_merged_room")
+        self.parent_window.switch_page("pin_entry")
     def get_help_text(self) -> str:
         """Provide help text for login screen"""
         return ("Hier können Sie sich mit Ihrem Nutzerkonto anmelden. "

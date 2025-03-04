@@ -213,7 +213,7 @@ class BaseWindow(Gtk.Box):
                 font-family: "Inter", sans-serif;
                 font-size: 20px;
                 font-weight: bold;
-                color: {Colors.FONT};
+                color: #ffffff;
                 background: {Colors.ERROR};
                 border: none;
                 margin-left: 200px;
