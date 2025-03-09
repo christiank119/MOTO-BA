@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'main_app.apps.LogsystemConfig',
     'api',
+    'analysis_tool',
 ]
 
 MIDDLEWARE = [
@@ -49,7 +50,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'main_app.middleware.deviceID.DeviceMiddleware',
-    'main_app.middleware.osDetection.OsDetectionMiddleware',
+    #'main_app.middleware.permission_manager.PermissionMiddleware',
+    # 'main_app.middleware.osDetection.OsDetectionMiddleware',
     'api.middleware.csrf_deactivation.DisableCSRFMiddleware',
 ]
 

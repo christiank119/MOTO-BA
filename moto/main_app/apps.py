@@ -1,5 +1,7 @@
 from django.apps import AppConfig
 from datetime import datetime
+from main_app.registry import register_user_function
+from main_app.utils.permission_management import is_mobile, user_has_ogs, user_is_superuser
 import importlib
 # from django.contrib.auth.models import Group
 
@@ -88,3 +90,124 @@ class LogsystemConfig(AppConfig):
                 group.save()
         except:
             pass
+
+
+        # registrierung funktionen mit berechtigungen
+
+        register_user_function(main_app_functions)
+
+
+def main_app_functions(request):
+  
+    user = request.user
+    functions = []
+    has_ogs = user_has_ogs(request)
+
+    if user.username != "root":
+        functions.append({
+            "label": "Dashboard",
+            "url": "/dashboard/",
+            "conditions": [lambda req: req.user.username != "root",]
+        })
+        
+        if has_ogs:
+            functions.append({
+                "label": "OGS-Gruppe",
+                "url": "/ogs_group/",
+                "conditions": [lambda req: req.user.username != "root",]
+            })
+        
+        functions.append({
+            "label": "Suche Kind",
+            "url": "/search_pupil/",
+            "conditions": [lambda req: req.user.username != "root",]
+        })
+        
+        if user.is_superuser:
+            if is_mobile(request):
+                functions.append({
+                    "label": "Passwörter Zurücksetzen",
+                    "url": "/superuser/",
+                    "conditions": [lambda req: req.user.is_superuser, lambda req: is_mobile(req)]
+                })
+                functions.append({
+                    "label": "Persönliche Einstellungen",
+                    "url": "/preferences/",
+                    "conditions": [lambda req: True, lambda req: is_mobile(req)]
+                })
+            else:
+                functions.append({
+                    "label": "Raumübersicht",
+                    "url": "/select_room/",
+                    "conditions": [lambda req: True, lambda req: not is_mobile(req)]
+                })
+                functions.append({
+                    "label": "Vertretungen",
+                    "url": "/representation/",
+                    "conditions": [lambda req: True, lambda req: not is_mobile(req)]
+                })
+                functions.append({
+                    "label": "CSV-Import",
+                    "url": "/csv_import/",
+                    "conditions": [lambda req: True, lambda req: not is_mobile(req)]
+                })
+                functions.append({
+                    "label": "Passwörter Zurücksetzen",
+                    "url": "/superuser/",
+                    "conditions": [lambda req: req.user.is_superuser, lambda req: not is_mobile(req)]
+                })
+                functions.append({
+                    "label": "Persönliche Einstellungen",
+                    "url": "/preferences/",
+                    "conditions": [lambda req: True, lambda req: not is_mobile(req)]
+                })
+                functions.append({
+                    "label": "Datenbank Bearbeiten",
+                    "url": "/choose_data/",
+                    "conditions": [lambda req: req.user.is_superuser, lambda req: not is_mobile(req)]
+                })
+        else:
+            functions.append({
+                "label": "Raumübersicht",
+                "url": "/select_room/",
+                "conditions": [lambda req: True]
+            })
+            functions.append({
+                "label": "Persönliche Einstellungen",
+                "url": "/preferences/",
+                "conditions": [lambda req: True]
+            })
+    else:
+        if is_mobile(request):
+            functions.append({
+                "label": "Passwörter Zurücksetzen",
+                "url": "/superuser/",
+                "conditions": [lambda req: is_mobile(req)]
+            })
+            functions.append({
+                "label": "Root Passwort Ändern",
+                "url": "/set_new_pw/",
+                "conditions": [lambda req: is_mobile(req)]
+            })
+        else:
+            functions.append({
+                "label": "CSV-Import",
+                "url": "/csv_import/",
+                "conditions": [lambda req: not is_mobile(req)]
+            })
+            functions.append({
+                "label": "Passwörter Zurücksetzen",
+                "url": "/superuser/",
+                "conditions": [lambda req: not is_mobile(req)]
+            })
+            functions.append({
+                "label": "Root Passwort Ändern",
+                "url": "/set_new_pw/",
+                "conditions": [lambda req: not is_mobile(req)]
+            })
+            functions.append({
+                "label": "Datenbank Bearbeiten",
+                "url": "/choose_data/",
+                "conditions": [lambda req: not is_mobile(req)]
+            })
+    return functions

@@ -20,5 +20,6 @@ from django.urls import include, path
 urlpatterns = [
     path('', include('main_app.urls')),  # replace 'your_app' with the name of your app
     path('api/', include('api.urls')),
+    path('at/', include('analysis_tool.urls')),
     # other paths...
 ]
