@@ -46,3 +46,39 @@ Traceback (most recent call last):
     raise RuntimeError(
 RuntimeError: Gtk couldn't be initialized. Use Gtk.init_check() if you want to handle this case.
 2025-03-09 14:20:11 - main - INFO - ==== MOTO Native App Exiting ====
+2025-03-09 20:54:27 - main - INFO - ==== MOTO Native App Starting ====
+2025-03-09 20:54:27 - main - CRITICAL - Unhandled exception in main: Gtk couldn't be initialized. Use Gtk.init_check() if you want to handle this case.
+Traceback (most recent call last):
+  File "/app/main.py", line 254, in <module>
+    win = MainWindow()
+          ^^^^^^^^^^^^
+  File "/app/main.py", line 33, in __init__
+    super().__init__(title="MOTO")
+  File "/usr/local/lib/python3.12/site-packages/gi/overrides/Gtk.py", line 505, in __init__
+    raise RuntimeError(
+RuntimeError: Gtk couldn't be initialized. Use Gtk.init_check() if you want to handle this case.
+2025-03-09 20:54:27 - main - INFO - ==== MOTO Native App Exiting ====
+2025-03-09 20:55:10 - main - INFO - ==== MOTO Native App Starting ====
+2025-03-09 20:55:10 - main - CRITICAL - Unhandled exception in main: Gtk couldn't be initialized. Use Gtk.init_check() if you want to handle this case.
+Traceback (most recent call last):
+  File "/app/main.py", line 254, in <module>
+    win = MainWindow()
+          ^^^^^^^^^^^^
+  File "/app/main.py", line 33, in __init__
+    super().__init__(title="MOTO")
+  File "/usr/local/lib/python3.12/site-packages/gi/overrides/Gtk.py", line 505, in __init__
+    raise RuntimeError(
+RuntimeError: Gtk couldn't be initialized. Use Gtk.init_check() if you want to handle this case.
+2025-03-09 20:55:10 - main - INFO - ==== MOTO Native App Exiting ====
+2025-03-09 21:05:55 - main - INFO - ==== MOTO Native App Starting ====
+2025-03-09 21:05:55 - main - CRITICAL - Unhandled exception in main: Gtk couldn't be initialized. Use Gtk.init_check() if you want to handle this case.
+Traceback (most recent call last):
+  File "/app/main.py", line 254, in <module>
+    win = MainWindow()
+          ^^^^^^^^^^^^
+  File "/app/main.py", line 33, in __init__
+    super().__init__(title="MOTO")
+  File "/usr/local/lib/python3.12/site-packages/gi/overrides/Gtk.py", line 505, in __init__
+    raise RuntimeError(
+RuntimeError: Gtk couldn't be initialized. Use Gtk.init_check() if you want to handle this case.
+2025-03-09 21:05:55 - main - INFO - ==== MOTO Native App Exiting ====

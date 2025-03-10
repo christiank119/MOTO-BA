@@ -1,23 +1,25 @@
-from django.http import HttpResponseForbidden
-from main_app.registry import user_functions_registry, check_conditions
+from django.urls import resolve, reverse
+from django.shortcuts import redirect
+from main_app.registry import navigation_registry, check_conditions
+import logging
+
+logger = logging.getLogger(__name__)
 
 class PermissionMiddleware:
-    """
-    Diese Middleware prüft, ob der angeforderte Pfad in einer der
-    registrierten Navigationsfunktionen enthalten ist und ob der User
-    die dafür definierten Bedingungen erfüllt.
-    """
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
-        
-        for reg_func in user_functions_registry:           
-            navigation_items = reg_func(request)
-            for item in navigation_items:
-                if item.get("url") == request.path:
-                    conditions = item.get("conditions", [])
-                    if conditions and not check_conditions(request, conditions):
-                        return HttpResponseForbidden("You do not have permission to access this page.")
-        response = self.get_response(request)
-        return response
+        login_url = reverse("login")
+        if not request.user.is_authenticated and request.path != login_url:
+            return redirect(login_url)
+        try:
+            resolved = resolve(request.path)
+            url_name = resolved.url_name
+            if url_name in navigation_registry:
+                conditions = navigation_registry[url_name]["conditions"]
+                if conditions and not check_conditions(request, conditions):
+                    return redirect(reverse("master_web"))
+        except Exception as e:
+            logger.error("Error in PermissionMiddleware: %s", e)
+        return self.get_response(request)

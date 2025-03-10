@@ -14,7 +14,7 @@ def ogs_group_view(request):
         schueler = None
         if(Gruppe.objects.filter(gruppen_leiter=personal).exists()):
             gruppe = Gruppe.objects.filter(gruppen_leiter=personal)[0]
-            if gruppe.vertreter == None:
+            if gruppe.vertreter != None:
                 gruppe = None
         if(Gruppe.objects.filter(vertreter=personal).exists()):
             gruppe = Gruppe.objects.get(vertreter=personal) 

@@ -12,8 +12,11 @@ def user_has_ogs(request):
     from main_app.models import Personal, Gruppe
     try:
         personal = Personal.objects.get(user=request.user)
-        if Gruppe.objects.filter(gruppen_leiter=personal, vertreter__isnull=True).exists() or \
-           Gruppe.objects.filter(vertreter=personal).exists():
+        if(Gruppe.objects.filter(gruppen_leiter=personal).exists()):
+                gruppe = Gruppe.objects.get(gruppen_leiter=personal)
+                if gruppe.vertreter == None:
+                    has_ogs = True    
+        if Gruppe.objects.filter(vertreter=personal).exists():
             has_ogs = True
     except Personal.DoesNotExist:
         pass
