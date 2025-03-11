@@ -82,3 +82,21 @@ Traceback (most recent call last):
     raise RuntimeError(
 RuntimeError: Gtk couldn't be initialized. Use Gtk.init_check() if you want to handle this case.
 2025-03-09 21:05:55 - main - INFO - ==== MOTO Native App Exiting ====
+2025-03-10 15:29:31 - main - INFO - ==== MOTO Native App Starting ====
+2025-03-10 15:30:06 - main - INFO - ==== MOTO Native App Exiting ====
+2025-03-10 15:31:20 - main - INFO - ==== MOTO Native App Starting ====
+2025-03-10 15:32:05 - main - INFO - ==== MOTO Native App Exiting ====
+2025-03-10 15:32:29 - main - INFO - ==== MOTO Native App Starting ====
+2025-03-10 15:35:40 - main - INFO - ==== MOTO Native App Exiting ====
+2025-03-10 15:35:46 - main - INFO - ==== MOTO Native App Starting ====
+2025-03-10 15:36:49 - main - INFO - ==== MOTO Native App Starting ====
+2025-03-10 15:46:04 - main - INFO - ==== MOTO Native App Exiting ====
+2025-03-10 15:46:12 - main - INFO - ==== MOTO Native App Starting ====
+2025-03-10 15:47:45 - main - INFO - ==== MOTO Native App Exiting ====
+2025-03-11 00:08:02 - main - INFO - ==== MOTO Native App Starting ====
+2025-03-11 00:11:42 - main - INFO - ==== MOTO Native App Starting ====
+2025-03-11 00:12:09 - main - INFO - ==== MOTO Native App Exiting ====
+2025-03-11 00:12:15 - main - INFO - ==== MOTO Native App Starting ====
+2025-03-11 00:12:52 - main - INFO - ==== MOTO Native App Exiting ====
+2025-03-11 00:12:58 - main - INFO - ==== MOTO Native App Starting ====
+2025-03-11 00:48:17 - main - INFO - ==== MOTO Native App Exiting ====

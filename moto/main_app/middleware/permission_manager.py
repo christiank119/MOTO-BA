@@ -10,6 +10,10 @@ class PermissionMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+
+        if request.path.startswith('/api/'):
+            return self.get_response(request)
+
         login_url = reverse("login")
         if not request.user.is_authenticated and request.path != login_url:
             return redirect(login_url)

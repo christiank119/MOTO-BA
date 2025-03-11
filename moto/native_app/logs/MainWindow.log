@@ -1,0 +1,63 @@
+2025-03-10 15:29:31 - MainWindow - INFO - Initializing MainWindow
+2025-03-10 15:29:31 - MainWindow - INFO - Device ID: c3945c16-ec45-4ca2-9825-1c756f03ff95
+2025-03-10 15:29:31 - MainWindow - INFO - Switching to page: login
+2025-03-10 15:29:31 - MainWindow - INFO - Switching to view: LoginWindow
+2025-03-10 15:29:53 - MainWindow - INFO - Switching to page: pin_entry
+2025-03-10 15:29:53 - MainWindow - INFO - Switching to view: PinEntryWindow
+2025-03-10 15:30:00 - MainWindow - INFO - Switching to page: login
+2025-03-10 15:30:00 - MainWindow - INFO - Switching to view: LoginWindow
+2025-03-10 15:31:20 - MainWindow - INFO - Initializing MainWindow
+2025-03-10 15:31:20 - MainWindow - INFO - Device ID: 16b508a9-1349-49da-82f5-21cb64290c83
+2025-03-10 15:31:20 - MainWindow - INFO - Switching to page: login
+2025-03-10 15:31:20 - MainWindow - INFO - Switching to view: LoginWindow
+2025-03-10 15:31:29 - MainWindow - INFO - Switching to page: pin_entry
+2025-03-10 15:31:29 - MainWindow - INFO - Switching to view: PinEntryWindow
+2025-03-10 15:31:38 - MainWindow - INFO - Switching to page: login
+2025-03-10 15:31:38 - MainWindow - INFO - Switching to view: LoginWindow
+2025-03-10 15:32:29 - MainWindow - INFO - Initializing MainWindow
+2025-03-10 15:32:29 - MainWindow - INFO - Device ID: 70efec08-4cd2-42db-bf39-0fb9a43534c2
+2025-03-10 15:32:29 - MainWindow - INFO - Switching to page: login
+2025-03-10 15:32:29 - MainWindow - INFO - Switching to view: LoginWindow
+2025-03-10 15:35:46 - MainWindow - INFO - Initializing MainWindow
+2025-03-10 15:35:46 - MainWindow - INFO - Device ID: 57bbba0d-3f27-47aa-9479-f0a407c43e08
+2025-03-10 15:35:46 - MainWindow - INFO - Switching to page: login
+2025-03-10 15:35:46 - MainWindow - INFO - Switching to view: LoginWindow
+2025-03-10 15:36:49 - MainWindow - INFO - Initializing MainWindow
+2025-03-10 15:36:49 - MainWindow - INFO - Device ID: e164c46c-99ed-46c3-85fc-244888c177d5
+2025-03-10 15:36:49 - MainWindow - INFO - Switching to page: login
+2025-03-10 15:36:49 - MainWindow - INFO - Switching to view: LoginWindow
+2025-03-10 15:39:41 - MainWindow - INFO - Switching to page: pin_entry
+2025-03-10 15:39:41 - MainWindow - INFO - Switching to view: PinEntryWindow
+2025-03-10 15:46:12 - MainWindow - INFO - Initializing MainWindow
+2025-03-10 15:46:12 - MainWindow - INFO - Device ID: 5bd4e4db-9240-4b13-b352-5f8026375b76
+2025-03-10 15:46:12 - MainWindow - INFO - Switching to page: login
+2025-03-10 15:46:12 - MainWindow - INFO - Switching to view: LoginWindow
+2025-03-10 15:46:43 - MainWindow - INFO - Switching to page: pin_entry
+2025-03-10 15:46:43 - MainWindow - INFO - Switching to view: PinEntryWindow
+2025-03-10 15:46:46 - MainWindow - INFO - Setting authentication tokens
+2025-03-10 15:46:46 - MainWindow - INFO - Setting authentication tokens
+2025-03-10 15:46:47 - MainWindow - INFO - Setting authentication tokens
+2025-03-10 15:46:47 - MainWindow - INFO - Switching to page: choose_room
+2025-03-10 15:46:47 - MainWindow - INFO - Switching to view: Choose_RoomWindow
+2025-03-10 15:46:48 - MainWindow - INFO - Switching to page: choose_room
+2025-03-10 15:46:48 - MainWindow - INFO - Switching to view: Choose_RoomWindow
+2025-03-10 15:46:48 - MainWindow - INFO - Switching to page: choose_room
+2025-03-10 15:46:48 - MainWindow - INFO - Switching to view: Choose_RoomWindow
+2025-03-10 15:47:11 - MainWindow - INFO - Switching to view: CreateActivityWindow
+2025-03-10 15:47:35 - MainWindow - INFO - Switching to view: HomeWindow
+2025-03-11 00:08:02 - MainWindow - INFO - Initializing MainWindow
+2025-03-11 00:08:02 - MainWindow - INFO - Device ID: 15a8b2da-3039-409c-b8a1-afa62bcee6df
+2025-03-11 00:08:02 - MainWindow - INFO - Switching to page: login
+2025-03-11 00:08:02 - MainWindow - INFO - Switching to view: LoginWindow
+2025-03-11 00:11:42 - MainWindow - INFO - Initializing MainWindow
+2025-03-11 00:11:42 - MainWindow - INFO - Device ID: f6fe0448-208b-47d9-9415-8c6222a67cac
+2025-03-11 00:11:42 - MainWindow - INFO - Switching to page: login
+2025-03-11 00:11:42 - MainWindow - INFO - Switching to view: LoginWindow
+2025-03-11 00:12:15 - MainWindow - INFO - Initializing MainWindow
+2025-03-11 00:12:15 - MainWindow - INFO - Device ID: 5e09b5b3-931d-42d5-aedc-819f8150105b
+2025-03-11 00:12:15 - MainWindow - INFO - Switching to page: login
+2025-03-11 00:12:15 - MainWindow - INFO - Switching to view: LoginWindow
+2025-03-11 00:12:58 - MainWindow - INFO - Initializing MainWindow
+2025-03-11 00:12:58 - MainWindow - INFO - Device ID: d45c9f83-61e6-4ea1-a9f9-0ebd1ae7eaea
+2025-03-11 00:12:58 - MainWindow - INFO - Switching to page: login
+2025-03-11 00:12:58 - MainWindow - INFO - Switching to view: LoginWindow

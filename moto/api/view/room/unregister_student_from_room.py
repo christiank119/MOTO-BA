@@ -56,6 +56,7 @@ class UnregisterStudentFromRoomView(APIView):
             # Endzeit des Aufenthalts setzen
             aufenthalt.zeitraum.endzeit = datetime.now().time()
             aufenthalt.zeitraum.save()
+            aufenthalt.save()
 
             schueler.wc = False
             schueler.schulhof = False

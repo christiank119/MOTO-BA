@@ -73,6 +73,7 @@ class LoginWindow(BaseWindow):
         self.user_combo.append_text("root") # TODO: Populate from API
         self.user_combo.append_text("Max Mustermann")
         self.user_combo.append_text("Erika Musterfrau")
+        self.user_combo.append_text("maxmustermann")
         self.user_combo.set_active(0)
         user_row.pack_start(self.user_combo, True, True, 0)  # True means expand to fill space
 
