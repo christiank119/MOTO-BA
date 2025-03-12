@@ -264,3 +264,45 @@
       overflow-x: auto;
     }
   }
+
+  /* Add these styles to your style.css file to fix the block_container overflow */
+
+.block_container {
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  padding-left: 20px; /* Match your app's padding */
+  padding-right: 20px; /* Match your app's padding */
+}
+
+/* If you have the visualisation.html and edit.html with similar issues, 
+   you may want to add this to your heatmap.css file as well */
+#map, 
+.container,
+.controls,
+.legend,
+.form-container {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Ensure form inputs don't expand beyond their containers */
+input, select, textarea {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Ensure map container respects boundaries */
+#map-container {
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Fix for mobile views */
+@media only screen and (max-width: 767px) {
+  .block_container {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
