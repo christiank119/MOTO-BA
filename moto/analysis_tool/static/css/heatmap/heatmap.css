@@ -1,0 +1,266 @@
+/* Upload form */
+.upload-form {
+    width: 80%;
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: var(--label_background);
+    border-radius: 10px;
+  }
+  
+  .upload-form .form-group {
+    margin-bottom: 20px;
+  }
+  
+  .upload-form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+  }
+  
+  .upload-form input {
+    width: 100%;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+  
+  .upload-button {
+    background-color: var(--select_color_background);
+    color: var(--font_color);
+    border-radius: 10px;
+    border: none;
+    font-size: 1.5rem;
+    font-weight: 600;
+    height: 50px;
+    width: 150px;
+    box-shadow: rgba(0, 0, 0, 0.18) 0px 2px 4px;
+    margin-top: 20px;
+    transition: 0.35s;
+    cursor: pointer;
+  }
+  
+  .upload-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px var(--select_color_background);
+  }
+  
+  /* Map container */
+  #map {
+    width: 100%;
+    height: 600px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin: 20px 0;
+    box-shadow: rgba(0, 0, 0, 0.18) 0px 2px 4px;
+  }
+  
+  #map-container {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  
+  /* Control elements */
+  .controls {
+    margin: 15px 0;
+    padding: 10px;
+    background-color: var(--inputfield_background);
+    border-radius: 10px;
+    border: none;
+  }
+  
+  .control-container {
+    margin: 20px 0;
+  }
+  
+  .metric-selector {
+    margin-bottom: 15px;
+  }
+  
+  /* Room information */
+  .room-info {
+    margin-top: 10px;
+    padding: 15px;
+    background-color: var(--label_background);
+    border-radius: 10px;
+    border: none;
+  }
+  
+  #info-panel {
+    flex: 0 0 300px;
+    padding: 15px;
+    background-color: var(--label_background);
+    border-radius: 10px;
+    border: none;
+    box-shadow: rgba(0, 0, 0, 0.18) 0px 2px 4px;
+  }
+  
+  .room-details {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+  }
+  
+  /* Legend */
+  .legend {
+    padding: 10px;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-top: 10px;
+  }
+  
+  .legend-item {
+    display: flex;
+    align-items: center;
+    margin: 5px 0;
+  }
+  
+  .legend-color {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+    border: 1px solid #888;
+  }
+  
+  /* Charts */
+  .chart-container {
+    margin-top: 15px;
+    height: 200px;
+  }
+  
+  /* Tabs */
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 15px;
+  }
+  
+  .tab {
+    padding: 8px 15px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    border-bottom: none;
+    margin-right: 5px;
+  }
+  
+  .tab.active {
+    background-color: white;
+    border-color: #ccc;
+    border-radius: 5px 5px 0 0;
+  }
+  
+  /* Toggle button style */
+  #toggleDraw, #apply-heatmap {
+    background-color: var(--select_color_background);
+    color: var(--font_color);
+    border-radius: 10px;
+    border: none;
+    font-size: 1rem;
+    font-weight: 600;
+    height: 40px;
+    padding: 0 20px;
+    margin-right: 10px;
+    box-shadow: rgba(0, 0, 0, 0.18) 0px 2px 4px;
+    transition: 0.35s;
+    cursor: pointer;
+  }
+  
+  #toggleDraw:hover, #apply-heatmap:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px var(--select_color_background);
+  }
+  
+  /* Select input styling */
+  select {
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background-color: white;
+    font-size: 16px;
+  }
+  
+  /* PC Ansicht */
+  @media only screen and (min-width: 1280px) {
+    .container {
+      flex-direction: row;
+    }
+    
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .metric-selector {
+      flex: 1;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+  }
+  
+  /* Tablet Ansicht */
+  @media only screen and (min-width: 768px) and (max-width: 1279px) {
+    .container {
+      flex-direction: column;
+    }
+    
+    #map {
+      height: 500px;
+    }
+    
+    .controls {
+      flex-direction: column;
+    }
+    
+    .metric-selector {
+      display: grid;
+      grid-template-columns: auto auto;
+      gap: 10px;
+      align-items: center;
+    }
+  }
+  
+  /* Mobile Endgeräte Ansicht */
+  @media only screen and (min-width: 320px) and (max-width: 767px) {
+    .container {
+      flex-direction: column;
+    }
+    
+    #map {
+      height: 400px;
+    }
+    
+    .controls {
+      flex-direction: column;
+    }
+    
+    .metric-selector {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    #toggleDraw, #apply-heatmap {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    
+    .legend {
+      overflow-x: auto;
+    }
+    
+    .tabs {
+      overflow-x: auto;
+    }
+  }

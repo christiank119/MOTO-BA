@@ -1,8 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="de">
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
 <head>
-  <meta charset="UTF-8">
-  <title>Raumplan mit Heatmap: {{ raumplan.title }}</title>
+  <link rel="stylesheet" type="text/css" href="{% static 'css/heatmap/heatmap.css' %}"/>
   <!-- Leaflet CSS & JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -11,151 +14,87 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
   <!-- Chart.js für Diagramme -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-    }
-    .container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-    }
-    #map-container {
-      flex: 1;
-      min-width: 600px;
-    }
-    #info-panel {
-      flex: 0 0 300px;
-      padding: 15px;
-      background-color: #f8f8f8;
-      border-radius: 5px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-    #map {
-      width: 100%;
-      height: 600px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-    .controls {
-      margin: 15px 0;
-      padding: 10px;
-      background-color: #f5f5f5;
-      border-radius: 5px;
-      border: 1px solid #ddd;
-    }
-    .metric-selector {
-      margin-bottom: 15px;
-    }
-    .legend {
-      padding: 10px;
-      background-color: white;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      margin-top: 10px;
-    }
-    .legend-item {
-      display: flex;
-      align-items: center;
-      margin: 5px 0;
-    }
-    .legend-color {
-      width: 20px;
-      height: 20px;
-      margin-right: 8px;
-      border: 1px solid #888;
-    }
-    .room-details {
-      margin-top: 15px;
-      padding: 10px;
-      background-color: white;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-    }
-    .chart-container {
-      margin-top: 15px;
-      height: 200px;
-    }
-    h1, h2, h3 {
-      margin-top: 0;
-    }
-    .tabs {
-      display: flex;
-      border-bottom: 1px solid #ccc;
-      margin-bottom: 15px;
-    }
-    .tab {
-      padding: 8px 15px;
-      cursor: pointer;
-      border: 1px solid transparent;
-      border-bottom: none;
-      margin-right: 5px;
-    }
-    .tab.active {
-      background-color: white;
-      border-color: #ccc;
-      border-radius: 5px 5px 0 0;
-    }
-  </style>
 </head>
-<body>
-  <h1>Raumplan mit Heatmap: {{ raumplan.title }}</h1>
+  <div class="block_container">
+    <div class="header_container_back_help">
+      <button class="back" onclick="window.location.href = '/master_web/'"> 
+        <span class="arrow"> <i class="arrow_left"></i> </span> 
+        <span class="backtext">Zurück</span>
+      </button>
+
+      <a class="question" href="#popup1">Hilfe</a>
+
+      <div id="popup1" class="popup">
+        <div class="popup2">
+          <h3>Was muss ich in diesem Anzeigefenster beachten?</h3>
+
+          <div class="content">
+            <p>In dieser Ansicht können Sie die <strong>Raumauslastung</strong> in Form einer Heatmap visualisieren. 
+               Wählen Sie eine <strong>Metrik</strong> aus dem Dropdown-Menü und klicken Sie auf einen Raum, um weitere Details zu erhalten.</p>
+          </div>
+
+          <a class="close" href="#">&times;</a>
+        </div>
+      </div>
+    </div>
+
+    <h1 class="heading_2">Raumplan mit Heatmap: {{ raumplan.title }}</h1>
+    <h2 class="subheading_2">Raum-Auslastungs-Analyse</h2>
   
-  <div class="controls">
-    <div class="metric-selector">
-      <label for="metric-select">Heatmap-Metrik auswählen:</label>
-      <select id="metric-select">
-        <option value="avg_utilization_percentage">Durchschnittliche Auslastung (%)</option>
-        <option value="total_actual_usage">Gesamtnutzungszeit (Stunden)</option>
-        <option value="full_capacity_percentage">Auslastung der Kapazität (%)</option>
-        <option value="events">Anzahl der Veranstaltungen</option>
-      </select>
-      <button id="apply-heatmap">Heatmap anwenden</button>
-      <button id="toggle-edit-mode">Bearbeitungsmodus</button>
-    </div>
-    
-    <div class="legend">
-      <h3>Legende</h3>
-      <div id="legend-items"></div>
-    </div>
-  </div>
-  
-  <div class="container">
-    <div id="map-container">
-      <div id="map"></div>
-    </div>
-    
-    <div id="info-panel">
-      <h2>Rauminformationen</h2>
-      <p>Wählen Sie einen Raum auf der Karte aus, um Details anzuzeigen.</p>
+    <div class="controls">
+      <div class="metric-selector">
+        <label for="metric-select">Heatmap-Metrik auswählen:</label>
+        <select id="metric-select">
+          <option value="avg_utilization_percentage">Durchschnittliche Auslastung (%)</option>
+          <option value="total_actual_usage">Gesamtnutzungszeit (Stunden)</option>
+          <option value="full_capacity_percentage">Auslastung der Kapazität (%)</option>
+          <option value="events">Anzahl der Veranstaltungen</option>
+        </select>
+        <button id="apply-heatmap">Heatmap anwenden</button>
+        <button id="toggle-edit-mode">Bearbeitungsmodus</button>
+      </div>
       
-      <div id="room-info" style="display: none;">
-        <div class="tabs">
-          <div class="tab active" data-tab="overview">Übersicht</div>
-          <div class="tab" data-tab="usage-time">Nutzungszeiten</div>
-          <div class="tab" data-tab="trend">Trend</div>
-        </div>
+      <div class="legend">
+        <h3>Legende</h3>
+        <div id="legend-items"></div>
+      </div>
+    </div>
+  
+    <div class="container">
+      <div id="map-container">
+        <div id="map"></div>
+      </div>
+      
+      <div id="info-panel">
+        <h2>Rauminformationen</h2>
+        <p>Wählen Sie einen Raum auf der Karte aus, um Details anzuzeigen.</p>
         
-        <div id="tab-overview" class="tab-content">
-          <div class="room-details">
-            <h3 id="room-title">Raum: </h3>
-            <p id="room-utilization">Auslastung: </p>
-            <p id="room-capacity">Kapazitätsauslastung: </p>
-            <p id="room-events">Veranstaltungen: </p>
+        <div id="room-info" style="display: none;">
+          <div class="tabs">
+            <div class="tab active" data-tab="overview">Übersicht</div>
+            <div class="tab" data-tab="usage-time">Nutzungszeiten</div>
+            <div class="tab" data-tab="trend">Trend</div>
           </div>
-        </div>
-        
-        <div id="tab-usage-time" class="tab-content" style="display: none;">
-          <div class="chart-container">
-            <canvas id="hourly-chart"></canvas>
+          
+          <div id="tab-overview" class="tab-content">
+            <div class="room-details">
+              <h3 id="room-title">Raum: </h3>
+              <p id="room-utilization">Auslastung: </p>
+              <p id="room-capacity">Kapazitätsauslastung: </p>
+              <p id="room-events">Veranstaltungen: </p>
+            </div>
           </div>
-        </div>
-        
-        <div id="tab-trend" class="tab-content" style="display: none;">
-          <div class="chart-container">
-            <canvas id="trend-chart"></canvas>
+          
+          <div id="tab-usage-time" class="tab-content" style="display: none;">
+            <div class="chart-container">
+              <canvas id="hourly-chart"></canvas>
+            </div>
+          </div>
+          
+          <div id="tab-trend" class="tab-content" style="display: none;">
+            <div class="chart-container">
+              <canvas id="trend-chart"></canvas>
+            </div>
           </div>
         </div>
       </div>
@@ -681,4 +620,4 @@
     });
   </script>
 </body>
-</html>
+{% endblock %}
