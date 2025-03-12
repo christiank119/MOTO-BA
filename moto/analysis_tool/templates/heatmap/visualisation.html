@@ -47,16 +47,17 @@
         <select id="metric-select">
           <option value="avg_utilization_percentage">Durchschnittliche Auslastung (%)</option>
           <option value="total_actual_usage">Gesamtnutzungszeit (Stunden)</option>
-          <option value="full_capacity_percentage">Auslastung der Kapazität (%)</option>
+          <option value="full_capacity_percentage">Zeitliche Auslastung der vollen Kapazität (%)</option>
           <option value="events">Anzahl der Veranstaltungen</option>
         </select>
-        <button id="apply-heatmap">Heatmap anwenden</button>
-        <button id="toggle-edit-mode">Bearbeitungsmodus</button>
+        {% if user.is_superuser or user.username == 'root' %}
+        <a href="{% url 'heatmap_edit' %}" id="edit-button" class="button">Bearbeitungsmodus</a>
+        {% endif %}
       </div>
       
       <div class="legend">
         <h3>Legende</h3>
-        <div id="legend-items"></div>
+        <div id="legend-items" class="legend-items"></div>
       </div>
     </div>
   
@@ -323,6 +324,9 @@
           polygon.bindTooltip(`Raum ${polygon.roomNumber}: Keine Daten`);
         }
       });
+      
+      // Update legend when changing the metric
+      updateLegend();
     }
     
     // Metrik-Einheit holen
@@ -564,20 +568,8 @@
       });
     }
     
-    // Bearbeitungsmodus umschalten
-    function toggleEditMode() {
-      editMode = !editMode;
-      
-      if (editMode) {
-        map.addControl(drawControl);
-        document.getElementById('toggle-edit-mode').textContent = 'Anzeigemodus';
-        document.getElementById('toggle-edit-mode').classList.add('active');
-      } else {
-        map.removeControl(drawControl);
-        document.getElementById('toggle-edit-mode').textContent = 'Bearbeitungsmodus';
-        document.getElementById('toggle-edit-mode').classList.remove('active');
-      }
-    }
+    // Edit mode functionality has been removed
+    // and replaced with a direct link to the edit page
     
     // Tab anzeigen
     function showTab(tabName) {
@@ -600,14 +592,16 @@
     
     // Event-Listener
     function setupEventListeners() {
-      document.getElementById('apply-heatmap').addEventListener('click', applyHeatmap);
-      document.getElementById('toggle-edit-mode').addEventListener('click', toggleEditMode);
-      
       // Tab-Wechsel
       document.querySelectorAll('.tab').forEach(tab => {
         tab.addEventListener('click', function() {
           showTab(this.dataset.tab);
         });
+      });
+      
+      // Listen for metric select changes
+      document.getElementById('metric-select').addEventListener('change', function() {
+        applyHeatmap();
       });
     }
     

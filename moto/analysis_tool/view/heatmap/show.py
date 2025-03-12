@@ -19,7 +19,9 @@ def raumplan_show(request, raumplan_id=1):
     
     polygon_json = json.dumps(polygon_json)
     
+    # Pass both the user and raumplan to the template
     return render(request, 'heatmap/visualisation.html', {
         'raumplan': raumplan,
-        'polygon_json': polygon_json
+        'polygon_json': polygon_json,
+        'user': request.user  # Pass the user to the template
     })
