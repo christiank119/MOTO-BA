@@ -61,3 +61,11 @@
 2025-03-11 00:12:58 - MainWindow - INFO - Device ID: d45c9f83-61e6-4ea1-a9f9-0ebd1ae7eaea
 2025-03-11 00:12:58 - MainWindow - INFO - Switching to page: login
 2025-03-11 00:12:58 - MainWindow - INFO - Switching to view: LoginWindow
+2025-03-11 11:39:32 - MainWindow - INFO - Initializing MainWindow
+2025-03-11 11:39:32 - MainWindow - INFO - Device ID: 8682ceb1-6509-4dad-8442-ebefc5608296
+2025-03-11 11:39:32 - MainWindow - INFO - Switching to page: login
+2025-03-11 11:39:32 - MainWindow - INFO - Switching to view: LoginWindow
+2025-03-11 22:04:25 - MainWindow - INFO - Initializing MainWindow
+2025-03-11 22:04:25 - MainWindow - INFO - Device ID: edbc32c1-a584-4b44-8a4a-13c0c9d01204
+2025-03-11 22:04:25 - MainWindow - INFO - Switching to page: login
+2025-03-11 22:04:25 - MainWindow - INFO - Switching to view: LoginWindow

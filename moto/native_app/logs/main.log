@@ -100,3 +100,5 @@ RuntimeError: Gtk couldn't be initialized. Use Gtk.init_check() if you want to h
 2025-03-11 00:12:52 - main - INFO - ==== MOTO Native App Exiting ====
 2025-03-11 00:12:58 - main - INFO - ==== MOTO Native App Starting ====
 2025-03-11 00:48:17 - main - INFO - ==== MOTO Native App Exiting ====
+2025-03-11 11:39:32 - main - INFO - ==== MOTO Native App Starting ====
+2025-03-11 22:04:25 - main - INFO - ==== MOTO Native App Starting ====

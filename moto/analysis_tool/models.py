@@ -100,6 +100,7 @@ class StudentAGCategoryAnalysis(models.Model):
         default=0.0,
         help_text="Prozentsatz der in AGs dieser Kategorie verbrachten Zeit, bei denen ein Angebot vorlag"
     )
+    # relative Zeit zur gesamt verbrachten zeit in der Schule
 
     class Meta:
         unique_together = ('student', 'ag_kategorie')
@@ -159,3 +160,28 @@ class StudentOverallAnalysis(models.Model):
 
     def __str__(self):
         return f"Analyse für {self.student.name_eb}"
+    
+
+class RaumPlan(models.Model):
+    """
+    Modell zum Speichern eines Raumplans als Bild.
+    """
+    title = models.CharField(max_length=100)
+    image = models.ImageField(upload_to='raumplaene/')
+    width = models.PositiveIntegerField(help_text="Breite des Bildes in Pixel")
+    height = models.PositiveIntegerField(help_text="Höhe des Bildes in Pixel")
+
+    def __str__(self):
+        return self.title
+
+class RaumPolygon(models.Model):
+    """
+    Modell zur Speicherung der Polygon-Koordinaten, verknüpft mit einem Raum und Raumplan.
+    """
+    raum = models.OneToOneField(Raum, on_delete=models.CASCADE)
+    raumplan = models.ForeignKey(RaumPlan, on_delete=models.CASCADE)
+    # Speichert eine Liste von Koordinaten z. B. [{'x': 10, 'y': 20}, {'x': 150, 'y': 20}, ...]
+    polygon = models.JSONField(help_text="Liste von Koordinaten z. B. [{'x': 10, 'y': 20}, ...]")
+
+    def __str__(self):
+        return f"Polygon für Raum {self.raum.raum_nr} im Plan {self.raumplan.title}"

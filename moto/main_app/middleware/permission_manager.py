@@ -25,5 +25,6 @@ class PermissionMiddleware:
                 if conditions and not check_conditions(request, conditions):
                     return redirect(reverse("master_web"))
         except Exception as e:
-            logger.error("Error in PermissionMiddleware: %s", e)
+            #logger.error("Error in PermissionMiddleware: %s", e)
+            pass
         return self.get_response(request)

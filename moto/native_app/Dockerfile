@@ -1,25 +1,42 @@
 # gtk_app/Dockerfile
 FROM python:3.12
 
-# Setze Umgebungsvariablen
+# Set environment variables
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Installiere Systempakete inklusive der Abhängigkeiten für PyGObject
+# Install system packages including dependencies for PyGObject
 RUN apt-get update && \
-    apt-get install -y python3 python3-pip python3-gi python3-gi-cairo \
-    gir1.2-gtk-3.0 x11-apps gobject-introspection libgirepository1.0-dev libcairo2-dev \
-    pkg-config build-essential && \
-    apt-get install fonts-inter && \
+    apt-get install -y \
+    python3-gi \
+    python3-gi-cairo \
+    gir1.2-gtk-3.0 \
+    x11-apps \
+    gobject-introspection \
+    libgirepository1.0-dev \
+    libcairo2-dev \
+    pkg-config \
+    build-essential \
+    fonts-inter \
+    cmake \
+    libglib2.0-dev \
+    libffi-dev && \
     apt-get clean
 
-# Kopiere und installiere die Abhängigkeiten
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Kopiere den restlichen Anwendungscode
+# Set up working directory
 WORKDIR /app
 
-# Starte die Anwendung
+# Copy and install the dependencies
+COPY requirements.txt .
+
+# Try an alternative approach: use the system PyGObject
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir requests watchdog && \
+    echo "PyGObject is provided by the system package python3-gi"
+
+# Copy the rest of the application code
+COPY . .
+
+# Start the application
 CMD ["python3", "dev.py"]

@@ -158,3 +158,11 @@
 2025-03-11 00:12:58 - __main__ - DEBUG - RETURN: MainWindow.user_is_authenticated completed in 0.0000s
 2025-03-11 00:12:58 - __main__ - INFO - CALL: MainWindow.switch_page with args: {'self': <__main__.MainWindow object at 0x7f756995b700 (__main__+MainWindow at 0x55aee1e84280)>, 'page_name': 'login'}
 2025-03-11 00:12:58 - __main__ - INFO - RETURN: MainWindow.switch_page completed in 0.0713s
+2025-03-11 11:39:32 - __main__ - DEBUG - CALL: MainWindow.user_is_authenticated
+2025-03-11 11:39:32 - __main__ - DEBUG - RETURN: MainWindow.user_is_authenticated completed in 0.0000s
+2025-03-11 11:39:32 - __main__ - INFO - CALL: MainWindow.switch_page with args: {'self': <__main__.MainWindow object at 0x7fe94c8a3700 (__main__+MainWindow at 0x56495b740280)>, 'page_name': 'login'}
+2025-03-11 11:39:32 - __main__ - INFO - RETURN: MainWindow.switch_page completed in 0.1909s
+2025-03-11 22:04:25 - __main__ - DEBUG - CALL: MainWindow.user_is_authenticated
+2025-03-11 22:04:25 - __main__ - DEBUG - RETURN: MainWindow.user_is_authenticated completed in 0.0000s
+2025-03-11 22:04:25 - __main__ - INFO - CALL: MainWindow.switch_page with args: {'self': <__main__.MainWindow object at 0x7f4fbbd68e00 (__main__+MainWindow at 0x55dc6af6a280)>, 'page_name': 'login'}
+2025-03-11 22:04:25 - __main__ - INFO - RETURN: MainWindow.switch_page completed in 0.0539s

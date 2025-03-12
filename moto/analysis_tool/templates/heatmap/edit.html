@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Raumplan bearbeiten: {{ raumplan.title }}</title>
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Leaflet.draw CSS & JS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+  <style>
+    #map {
+      width: 800px;
+      height: 600px;
+      border: 1px solid #ccc;
+      margin: 20px 0;
+    }
+    .control-container {
+      margin: 20px 0;
+    }
+    .room-info {
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #f5f5f5;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Raumplan bearbeiten: {{ raumplan.title }}</h1>
+  
+  <div class="control-container">
+    <button id="toggleDraw" class="btn btn-primary">Zeichenmodus umschalten</button>
+    <div class="room-info">
+      <p>Zeichnen Sie Polygone, um Räume zu markieren. Klicken Sie zum Abschließen doppelt.</p>
+      <p><strong>Hinweis:</strong> Nach dem Zeichnen werden Sie aufgefordert, eine Raumnummer einzugeben.</p>
+    </div>
+  </div>
+  
+  <div id="map"></div>
+  
+  <script>
+    // Karte initialisieren
+    var map = L.map('map', {
+      crs: L.CRS.Simple,
+      minZoom: -5,
+      maxZoom: 3,
+      zoomControl: true
+    });
+    map.zoomControl.setPosition('topright');
+
+    // Bilddimensionen aus dem RaumPlan-Modell
+    var w = {{ raumplan.width }};
+    var h = {{ raumplan.height }};
+    
+    // Koordinatensystem definieren
+    var southWest = map.unproject([0, h], 0);
+    var northEast = map.unproject([w, 0], 0);
+    var bounds = new L.LatLngBounds(southWest, northEast);
+
+    // Raumplan als Bild-Overlay hinzufügen und die Karte an den Bildbounds ausrichten
+    var image = L.imageOverlay("{{ raumplan.image.url }}", bounds).addTo(map);
+    map.fitBounds(bounds);
+    
+    // FeatureGroup zum Speichern gezeichneter Items
+    var drawnItems = new L.FeatureGroup();
+    map.addLayer(drawnItems);
+
+    // Leaflet.draw initialisieren
+    var drawControl = new L.Control.Draw({
+      position: 'topright',
+      edit: {
+        featureGroup: drawnItems,
+        poly: {
+          allowIntersection: false
+        }
+      },
+      draw: {
+        polygon: {
+          allowIntersection: false,
+          showArea: true,
+          shapeOptions: {
+            color: 'blue',
+            weight: 3
+          }
+        },
+        // Andere Tools deaktivieren
+        marker: false,
+        polyline: false,
+        rectangle: false,
+        circle: false,
+        circlemarker: false
+      }
+    });
+    map.addControl(drawControl);
+
+    // Vorhandene Polygone laden
+    try {
+      var polygonData = {{ polygon_json|safe }};
+      
+      polygonData.forEach(function(room) {
+        // Konvertiere gespeicherte (x,y)-Koordinaten in Leaflet LatLngs
+        var points = room.polygon.map(function(pt) {
+          return map.unproject([pt.x, pt.y], 0);
+        });
+        
+        var polygon = L.polygon(points, {
+          color: 'blue',
+          weight: 2,
+          fillOpacity: 0.2
+        }).addTo(drawnItems);
+        
+        polygon.bindPopup("Raum: " + room.raum_nr);
+        polygon.on('click', function() {
+          this.openPopup();
+        });
+      });
+    } catch (e) {
+      console.error("Fehler beim Laden der Polygon-Daten:", e);
+    }
+
+    // Event: Wenn ein neues Polygon gezeichnet wurde
+    map.on(L.Draw.Event.CREATED, function(e) {
+      var layer = e.layer;
+      
+      // Hole die LatLngs des gezeichneten Polygons
+      var latlngs = layer.getLatLngs()[0];
+      
+      if (!latlngs || latlngs.length < 3) {
+        alert("Ein Polygon muss mindestens drei Punkte haben.");
+        return;
+      }
+
+      // Konvertiere die LatLngs zurück in Bildkoordinaten
+      var polygonCoords = latlngs.map(function(latlng) {
+        var point = map.project(latlng, 0);
+        return { x: Math.round(point.x), y: Math.round(point.y) };
+      });
+
+      // Frage nach der Raumnummer
+      var raum_nr = prompt("Bitte Raumnummer eingeben:");
+      if (!raum_nr) {
+        alert("Raumnummer ist erforderlich!");
+        return;
+      }
+
+      // Füge das Polygon zur Layer-Gruppe hinzu und binde ein Popup an
+      layer.bindPopup("Raum: " + raum_nr);
+      drawnItems.addLayer(layer);
+
+      // AJAX-POST an den Server, um das Polygon zu speichern
+      var postData = {
+        raum_nr: raum_nr,
+        raumplan_id: {{ raumplan.id }},
+        polygon: polygonCoords
+      };
+
+      fetch("{% url 'heatmap_save' %}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: JSON.stringify(postData)
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("Server response was not OK");
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.success) {
+          alert("Polygon erfolgreich gespeichert!");
+        } else {
+          alert("Fehler beim Speichern: " + data.error);
+        }
+      })
+      .catch(error => {
+        console.error("Error:", error);
+        alert("Ein Fehler ist aufgetreten: " + error.message);
+      });
+    });
+
+    // Toggle drawing mode button
+    document.getElementById('toggleDraw').addEventListener('click', function() {
+      if (map.drawControlEnabled) {
+        map.removeControl(drawControl);
+        map.drawControlEnabled = false;
+        this.textContent = 'Zeichenmodus aktivieren';
+      } else {
+        map.addControl(drawControl);
+        map.drawControlEnabled = true;
+        this.textContent = 'Zeichenmodus deaktivieren';
+      }
+    });
+
+    // Setze initial
+    map.drawControlEnabled = true;
+  </script>
+</body>
+</html>

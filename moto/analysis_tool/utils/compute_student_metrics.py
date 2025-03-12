@@ -1,5 +1,7 @@
 from django.db.models import Min, Max
 from main_app.models import Schueler, Aufenthalt, Raum_Belegung, AG, Zeitraum
+from django.utils import timezone
+from datetime import timedelta, datetime
 from analysis_tool.models import (
     StudentOverallAnalysis,
     StudentAGCategoryAnalysis,
@@ -31,12 +33,15 @@ def merge_intervals(intervals, gap_threshold=timedelta(minutes=15)):
             merged.append(current)
     return merged
 
+
 def update_session_buffer_for_student(student):
     """
     Aktualisiert den Zwischenspeicher für einen Schüler inkrementell.
-    Es werden nur neue oder geänderte Sitzungen hinzugefügt bzw. aktualisiert,
-    anstatt alle bisherigen Einträge zu löschen.
+    Dabei werden alle datetime-Objekte in timezone-aware Objekte umgewandelt.
+    Falls keine Endzeit vorhanden ist (bei laufenden Aufenthalten oder Raum_Belegungen),
+    wird ein Fallback genutzt.
     """
+    tz = timezone.get_current_timezone()
     # Bestehende Buffer-Einträge anhand eines eindeutigen Schlüssels ermitteln.
     existing_entries = {}
     for entry in StudentSessionBuffer.objects.filter(student=student):
@@ -46,26 +51,40 @@ def update_session_buffer_for_student(student):
     attendances = Aufenthalt.objects.filter(schueler_id=student)
     for a in attendances:
         try:
-            att_start = combine_datetime(a.tag, a.zeitraum.startzeit)
-            att_end = combine_datetime(a.tag, a.zeitraum.endzeit)
-        except Exception:
-            continue  # Ungültige Daten überspringen.
+            att_start = timezone.make_aware(datetime.combine(a.tag, a.zeitraum.startzeit), tz)
+            # Wenn der Aufenthalt noch läuft, nutze timezone.now() als Endzeit.
+            if a.zeitraum.endzeit is not None:
+                att_end = timezone.make_aware(datetime.combine(a.tag, a.zeitraum.endzeit), tz)
+            else:
+                att_end = timezone.now()
+        except Exception as e:
+            print(f"Fehler bei Attendance {a.id}: {e}")
+            continue
+
         sessions = Raum_Belegung.objects.filter(raum=a.raum_id)
         for session in sessions:
             try:
-                session_start = combine_datetime(a.tag, session.zeitraum.startzeit)
-                # Wichtige Anpassung: Falls die Endzeit in der Raum_Belegung fehlt,
-                # wird als Fallback der Endzeitpunkt des Aufenthalts genutzt.
+                session_start = timezone.make_aware(datetime.combine(a.tag, session.zeitraum.startzeit), tz)
                 if session.zeitraum.endzeit:
-                    session_end = combine_datetime(a.tag, session.zeitraum.endzeit)
+                    session_end = timezone.make_aware(datetime.combine(a.tag, session.zeitraum.endzeit), tz)
                 else:
                     session_end = att_end
-            except Exception:
+            except Exception as e:
+                print(f"Fehler bei Session in Raum {a.raum_id.id}: {e}")
                 continue
-            overlap = compute_overlap(att_start, att_end, session_start, session_end)
+
+            # Berechne das Overlap-Intervall:
+            latest_start = max(att_start, session_start)
+            earliest_end = min(att_end, session_end)
+            delta = (earliest_end - latest_start).total_seconds()
+            overlap = max(0, delta) / 3600.0
+
+            # Debug-Ausgabe:
+            print(f"Attendance {att_start} - {att_end}, Session {session_start} - {session_end}, Overlap: {overlap}")
+
             if overlap > 0:
-                interval_start = max(att_start, session_start)
-                interval_end = min(att_end, session_end)
+                interval_start = latest_start
+                interval_end = earliest_end
                 duration = (interval_end - interval_start).total_seconds() / 3600.0
                 key = (a.tag, interval_start, interval_end)
                 if key in existing_entries:
@@ -76,6 +95,7 @@ def update_session_buffer_for_student(student):
                     entry.is_offered = session.ag.offene_AG if session.ag and hasattr(session.ag, 'offene_AG') else False
                     entry.save()
                 else:
+                    print("Buffer wird wirklich erstellt")
                     StudentSessionBuffer.objects.create(
                         student=student,
                         session_date=a.tag,
@@ -86,7 +106,6 @@ def update_session_buffer_for_student(student):
                         ag_kategorie=session.ag.ag_kategorie if session.ag and hasattr(session.ag, 'ag_kategorie') else None,
                         is_offered=session.ag.offene_AG if session.ag and hasattr(session.ag, 'offene_AG') else False
                     )
-
 
 
 def compute_metrics_for_student(student):

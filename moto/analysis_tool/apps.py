@@ -13,9 +13,39 @@ class AnalysisToolConfig(AppConfig):
     def ready(self):
         register_functions()
 
+        register_functions2()
         #signals registrieren
         from analysis_tool.signals import create_ag_historie, create_student_buffer
 
+def register_functions2():
+    from analysis_tool import views
+    register_view(
+            view_func=views.raumplan_edit,
+            url_name="heatmap_edit",
+            label="Raumplan Bearbeiten",
+            conditions=[],
+            nav_conditions=[],
+            show_in_nav=True
+        )
+    register_view(
+            view_func=views.upload_raumplan,
+            url_name="heatmap_upload",
+            label="Raumplan Hochladen",
+            conditions=[],
+            nav_conditions=[],
+            show_in_nav=True
+        )
+    register_view(
+            view_func=views.raumplan_show,
+            url_name="heatmap_show",
+            label="Raumplan Anzeigen",
+            conditions=[],
+            nav_conditions=[],
+            show_in_nav=True
+        )
+
+    register_view(views.save_polygon, "heatmap_save", "Save", conditions=[], show_in_nav=False)
+    register_view(views.get_room_data, "heatmap_get_room_data", "Save", conditions=[], show_in_nav=False)
 
 def register_functions():
     from analysis_tool import views

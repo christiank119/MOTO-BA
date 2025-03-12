@@ -79,11 +79,6 @@ def archive_ag_utilization(sender, instance, **kwargs):
 
 
 def get_duration(start_time, end_time):
-    """
-    Konvertiert zwei datetime.time-Objekte in datetime-Objekte anhand eines gemeinsamen Datums
-    und berechnet die Dauer. Falls end_time vor start_time liegt, wird angenommen, dass der Zeitraum
-    über Mitternacht geht.
-    """
     today = date.today()  # oder ein anderes Referenzdatum, falls vorhanden
     start_dt = datetime.combine(today, start_time)
     end_dt = datetime.combine(today, end_time)
