@@ -15,7 +15,8 @@ class AnalysisToolConfig(AppConfig):
 
         register_functions2()
         #signals registrieren
-        from analysis_tool.signals import create_ag_historie, create_student_buffer
+        import analysis_tool.signals
+        import analysis_tool.extensions
 
 def register_functions2():
     from analysis_tool import views

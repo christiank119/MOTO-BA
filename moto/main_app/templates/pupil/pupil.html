@@ -2,6 +2,7 @@
 <html lang="de">
 {% extends 'base.html' %}
 {% load static %}
+{% load extension_tags %}
 {% block content %}
 
     <head>
@@ -40,6 +41,7 @@
         <button class="historybutton" onclick="location.href='{% url 'feedback_history' pupil=nutzer.id %}';"> Feedbackhistorie </button>
         <button class="historybutton" onclick="location.href='{% url 'food_history' pupil=nutzer.id %}';"> Essenshistorie </button>
         <button class="historybutton" onclick="location.href='{% url 'room_history' pupil=nutzer.id %}';"> Raumhistorie </button>
+        {% render_extensions 'pupil_navigation_buttons' %}
     </div>
 
 
@@ -130,6 +132,7 @@
                     <button class="change_button_transparent">Ändern</button>
                 </div>
                 {% endif %}
+                {% render_extensions 'pupil_information_sections' %}
                 <!-- % if user.is_superuser % -->
                 <!--{% if not nutzer.tag_id == None %}
                 <div class = "line"></div>
