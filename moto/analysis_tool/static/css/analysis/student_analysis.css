@@ -83,6 +83,134 @@
     margin: 0;
   }
   
+  /* Comparative Styles */
+  .positive {
+    color: #4caf50;
+    font-weight: 500;
+  }
+  
+  .neutral {
+    color: #f57c00;
+    font-weight: 500;
+  }
+  
+  .negative {
+    color: #e53935;
+    font-weight: 500;
+  }
+  
+  /* Comparison Metrics */
+  .comparison-charts {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .comparison-metric {
+    position: relative;
+    height: 40px;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+    margin: 15px 0;
+  }
+  
+  .student-bar {
+    height: 100%;
+    background-color: var(--select_color_background);
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 15px;
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: width 1s ease-in-out;
+  }
+  
+  .average-marker {
+    position: absolute;
+    top: -15px;
+    left: 100px;
+    background-color: var(--font_color);
+    color: white;
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    cursor: help;
+  }
+  
+  /* Percentile Bar */
+  .percentile-container {
+    margin-top: 15px;
+    padding-bottom: 10px;
+  }
+  
+  .percentile-bar {
+    position: relative;
+    height: 15px;
+    background-color: #f0f0f0;
+    border-radius: 7px;
+  }
+  
+  .percentile-fill {
+    height: 100%;
+    background: linear-gradient(to right, #90caf9, #1976d2);
+    border-radius: 7px;
+    transition: width 1s ease-in-out;
+  }
+  
+  .percentile-marker {
+    position: absolute;
+    top: 20px;
+    right: 0;
+    font-size: 0.9em;
+    color: #666;
+  }
+  
+  /* Overview Explanation */
+  .overview-explanation {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: rgba(255, 248, 225, 0.5);
+    border-radius: 10px;
+    border-left: 4px solid #ffb74d;
+  }
+  
+  .overview-explanation p {
+    margin: 0;
+    font-size: 1em;
+    color: #5d4037;
+  }
+  
+  /* Interpretation Box */
+  .interpretation {
+    padding: 15px;
+    background-color: rgba(232, 245, 233, 0.5);
+    border-radius: 10px;
+    border-left: 4px solid #66bb6a;
+  }
+  
+  .interpretation p {
+    margin: 0 0 15px 0;
+    font-size: 1em;
+    color: #2e7d32;
+    line-height: 1.5;
+  }
+  
+  .interpretation p:last-child {
+    margin-bottom: 0;
+  }
+  
+  .interpretation strong {
+    color: #1b5e20;
+  }
+  
   /* Tables */
   .metrics-table, .category-table {
     margin-bottom: 30px;
@@ -127,6 +255,14 @@
     .overview-card {
       max-width: calc(25% - 15px);
     }
+    
+    .comparison-charts {
+      flex-direction: column;
+    }
+    
+    .average-marker {
+      left: 100px; /* Position for desktop */
+    }
   }
   
   /* Tablet Ansicht */
@@ -143,6 +279,14 @@
     
     .chart-wrapper {
       height: 350px;
+    }
+    
+    .comparison-charts {
+      flex-direction: column;
+    }
+    
+    .average-marker {
+      left: 80px; /* Position for tablet */
     }
   }
   
@@ -173,5 +317,29 @@
     
     .category-table {
       overflow-x: auto;
+    }
+    
+    .comparison-charts {
+      flex-direction: column;
+    }
+    
+    .student-bar {
+      font-size: 0.85em;
+      padding: 0 10px;
+    }
+    
+    .average-marker {
+      left: 50px; /* Position for mobile */
+      width: 20px;
+      height: 20px;
+      font-size: 0.8em;
+    }
+    
+    .percentile-marker {
+      font-size: 0.8em;
+    }
+    
+    .interpretation p {
+      font-size: 0.9em;
     }
   }
