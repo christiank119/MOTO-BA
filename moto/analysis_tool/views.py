@@ -6,6 +6,7 @@ from analysis_tool.view.heatmap.visualtisation import get_room_data
 from analysis_tool.view.heatmap.show import raumplan_show
 from analysis_tool.view.student_analysis.student_analysis_view import student_analysis_view
 from analysis_tool.view.category_analysis.category_analysis_view import category_analysis_view
+from analysis_tool.view.category_comparison.category_comparison_view import category_comparison_view
 
 def test(request):
 

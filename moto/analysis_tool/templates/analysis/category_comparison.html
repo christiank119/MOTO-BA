@@ -1,0 +1,987 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load analysis_filters %}
+{% block content %}
+
+<head>
+    <title>AG-Kategorien Vergleichsanalyse</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/analysis/category_comparison.css' %}"/>
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <!-- Chart.js Matrix plugin for heatmaps -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@1.2.0/dist/chartjs-chart-matrix.min.js"></script>
+    <!-- D3.js for network visualizations -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        /* Additional CSS to ensure Bedeutung is centered */
+        .rules-table td:last-child {
+            text-align: center !important;
+            vertical-align: middle;
+        }
+        
+        .rules-table th:last-child {
+            text-align: center !important;
+        }
+        
+        /* Make the badges more visible */
+        .rules-table .significance-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            color: white;
+            font-weight: 500;
+            min-width: 90px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            margin: 0 auto;
+        }
+        
+        /* Force the text-align center */
+        table.rules-table td:last-child span {
+            text-align: center;
+            margin: 0 auto;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="block_container">
+        <div class="header_container_back_help">
+            <button class="back" onclick="window.location.href = '/master_web/';"> 
+                <span class="arrow"><i class="arrow_left"></i></span> 
+                <span class="backtext">Zurück</span>
+            </button>
+
+            <a class="question" href="#popup1">Hilfe</a>
+
+            <div id="popup1" class="popup">
+                <div class="popup2">
+                    <h3>Was muss ich in diesem Anzeigefenster beachten?</h3>
+
+                    <div class="content">
+                        <p>Diese Ansicht zeigt <strong>Beziehungen zwischen verschiedenen AG-Kategorien</strong> basierend auf dem Nutzungsverhalten der Schüler. Sie können Korrelationen, Übergangsmuster und häufige Kombinationen von Kategorien analysieren.</p>
+                        <p>Beginnen Sie mit der <strong>Übersicht</strong>, um die wichtigsten Erkenntnisse auf einen Blick zu erhalten.</p>
+                    </div>
+
+                    <a class="close" href="#">&times;</a>
+                </div>
+            </div>
+        </div>
+
+        <h1 class="heading_2">AG-Kategorien Vergleichsanalyse</h1>
+        
+        <!-- Tabs für verschiedene Ansichten -->
+        <div class="tabs">
+            <div class="tab active" data-tab="overview">Übersicht</div>
+            <div class="tab" data-tab="correlations">Korrelationen</div>
+            <div class="tab" data-tab="transitions">Übergänge</div>
+            <div class="tab" data-tab="cooccurrence">Gemeinsames Auftreten</div>
+            <div class="tab" data-tab="temporal">Zeitliche Muster</div>
+            <div class="tab" data-tab="association">Assoziationsregeln</div>
+        </div>
+        
+        <!-- Overview Tab (New) -->
+        <div id="tab-overview" class="tab-content">
+            {% if key_insights.has_data %}
+                <div class="overview-header">
+                    <h2>Die wichtigsten Erkenntnisse auf einen Blick</h2>
+                    <p class="overview-description">
+                        Basierend auf der Analyse der AG-Nutzungsdaten haben wir folgende Schlüsselerkenntnisse identifiziert:
+                    </p>
+                </div>
+                
+                <!-- Highlights Section -->
+                {% if key_insights.highlights %}
+                    <div class="insights-section highlights-section">
+                        <h3>Highlights</h3>
+                        <div class="insights-cards">
+                            {% for insight in key_insights.highlights %}
+                                <div class="insight-card">
+                                    <div class="insight-icon {{insight.type}}-icon"></div>
+                                    <h4>{{ insight.title }}</h4>
+                                    <p>{{ insight.description }}</p>
+                                    <div class="insight-action">
+                                        <span class="action-label">Empfehlung:</span>
+                                        <span class="action-text">{{ insight.actionable }}</span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <!-- Recommendations Section -->
+                {% if key_insights.recommendations %}
+                    <div class="insights-section recommendations-section">
+                        <h3>Empfehlungen</h3>
+                        <div class="insights-cards">
+                            {% for insight in key_insights.recommendations %}
+                                <div class="insight-card">
+                                    <div class="insight-icon {{insight.type}}-icon"></div>
+                                    <h4>{{ insight.title }}</h4>
+                                    <p>{{ insight.description }}</p>
+                                    <div class="insight-action">
+                                        <span class="action-label">Empfehlung:</span>
+                                        <span class="action-text">{{ insight.actionable }}</span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <!-- Warnings Section -->
+                {% if key_insights.warnings %}
+                    <div class="insights-section warnings-section">
+                        <h3>Zu beachten</h3>
+                        <div class="insights-cards">
+                            {% for insight in key_insights.warnings %}
+                                <div class="insight-card warning-card">
+                                    <div class="insight-icon {{insight.type}}-icon warning"></div>
+                                    <h4>{{ insight.title }}</h4>
+                                    <p>{{ insight.description }}</p>
+                                    <div class="insight-action">
+                                        <span class="action-label">Empfehlung:</span>
+                                        <span class="action-text">{{ insight.actionable }}</span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <div class="overview-navigation">
+                    <p>Für detailliertere Analysen nutzen Sie die Tabs in der oberen Leiste:</p>
+                    <div class="nav-buttons">
+                        <button class="nav-button" data-tab="correlations">Korrelationen</button>
+                        <button class="nav-button" data-tab="transitions">Übergänge</button>
+                        <button class="nav-button" data-tab="cooccurrence">Gemeinsames Auftreten</button>
+                        <button class="nav-button" data-tab="temporal">Zeitliche Muster</button>
+                    </div>
+                </div>
+            {% else %}
+                <div class="no-data-message">
+                    <p>Es sind nicht genügend Daten vorhanden, um aussagekräftige Erkenntnisse zu generieren.</p>
+                    <p>Bitte prüfen Sie die einzelnen Analyse-Tabs, um zu sehen, welche Daten verfügbar sind.</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Correlation Tab - Insights BEFORE visualization -->
+        <div id="tab-correlations" class="tab-content" style="display: none;">
+            <div class="chart-container">
+                <h3>Korrelationsmatrix der AG-Kategorien</h3>
+                <div class="chart-description">
+                    <p>Diese Heatmap zeigt die Korrelation zwischen den verschiedenen AG-Kategorien basierend auf der von Schülern in jeder Kategorie verbrachten Zeit. Starke positive Korrelationen (dunkelblau) deuten darauf hin, dass Schüler, die viel Zeit in einer Kategorie verbringen, auch viel Zeit in der anderen verbringen.</p>
+                </div>
+                
+                {% if correlation_data.has_data %}
+                    <!-- MOVED: Show insights BEFORE visualization -->
+                    {% if correlation_data.correlation_insights %}
+                        <div class="insights-container">
+                            <h4>Interpretation der stärksten Zusammenhänge:</h4>
+                            <ul class="insights-list colored-insights">
+                                {% for insight in correlation_data.correlation_insights %}
+                                    <li style="border-left: 4px solid {{ insight.color }};">
+                                        <div class="insight-content">
+                                            <span class="category-pair">{{ insight.category1 }} ↔ {{ insight.category2 }}</span>
+                                            <span class="correlation-value" style="background-color: {{ insight.color }};">{{ insight.value|floatformat:2 }}</span>
+                                            <p class="insight-description">{{ insight.interpretation }}</p>
+                                            <span class="significance-badge" style="background-color: {{ insight.color }};">{{ insight.significance }}</span>
+                                        </div>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="chart-wrapper">
+                        <div id="correlationHeatmapWrapper">
+                            <canvas id="correlationHeatmap"></canvas>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="no-data-message">
+                        <p>Für diese Analyse sind nicht genügend Daten vorhanden.</p>
+                        {% if correlation_data.error %}
+                            <p class="error-details">Details: {{ correlation_data.error }}</p>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="interpretation">
+                <h3>Interpretation der Korrelationen</h3>
+                <p>Die Korrelationsmatrix ermöglicht folgende Erkenntnisse:</p>
+                <ul>
+                    <li><strong>Starke positive Korrelationen</strong> (dunkelblau) zeigen, dass Schüler häufig beide Kategorien besuchen. Dies kann auf ähnliche Interessen oder zeitliche Kompatibilität hindeuten.</li>
+                    <li><strong>Negative Korrelationen</strong> (rot) deuten darauf hin, dass Schüler, die viel Zeit in einer Kategorie verbringen, tendenziell weniger Zeit in der anderen verbringen. Dies könnte auf konkurrierende Interessen oder zeitliche Überschneidungen hinweisen.</li>
+                    <li><strong>Neutrale Werte nahe Null</strong> (hellere Farben) bedeuten, dass kein Zusammenhang zwischen den Kategorien besteht.</li>
+                </ul>
+                <p>Diese Informationen können genutzt werden, um komplementäre Angebote zu planen oder Konflikte im Stundenplan zu identifizieren.</p>
+            </div>
+        </div>
+        
+        <!-- Transitions Tab - Improved visualization -->
+        <div id="tab-transitions" class="tab-content" style="display: none;">
+            <div class="chart-container">
+                <h3>Übergangsmuster zwischen AG-Kategorien</h3>
+                <div class="chart-description">
+                    <p>Diese Visualisierung zeigt, wie Schüler zwischen verschiedenen AG-Kategorien wechseln. Die Werte repräsentieren die Wahrscheinlichkeit des Übergangs von einer Kategorie zur anderen.</p>
+                </div>
+                
+                {% if transition_data.has_data %}
+                    <div class="insights-container">
+                        <h4>Bedeutung der häufigsten Übergänge:</h4>
+                        <ul class="insights-list colored-insights">
+                            {% for from_cat, to_cat, value, significance, color in transition_data.top_transitions %}
+                                <li style="border-left: 4px solid {{ color }};">
+                                    <div class="insight-content">
+                                        <span class="category-pair">{{ from_cat }} → {{ to_cat }}</span>
+                                        <span class="transition-value" style="background-color: {{ color }};">{{ value|floatformat:1 }}%</span>
+                                        <p class="insight-description">Schüler wechseln {{ significance }} von "{{ from_cat }}" zu "{{ to_cat }}".</p>
+                                        <span class="significance-badge" style="background-color: {{ color }};">{{ significance }}</span>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    
+                    <!-- Simple transition visualization -->
+                    <div class="transition-visualization">
+                        <h4>Visualisierung der häufigsten Übergänge</h4>
+                        <div id="transitionDiagram" class="transition-diagram"></div>
+                    </div>
+                {% else %}
+                    <div class="no-data-message">
+                        <p>Für diese Analyse sind nicht genügend Daten vorhanden.</p>
+                        {% if transition_data.error %}
+                            <p class="error-details">Details: {{ transition_data.error }}</p>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="interpretation">
+                <h3>Interpretation der Übergangsmuster</h3>
+                <p>Die Analyse der Übergänge zwischen Kategorien liefert wichtige Einblicke in das Bewegungsmuster der Schüler:</p>
+                <ul>
+                    <li><strong>Häufige Übergänge</strong> zeigen bevorzugte Pfade der Schüler durch verschiedene Aktivitäten.</li>
+                    <li><strong>Starke bidirektionale Verbindungen</strong> weisen auf komplementäre Kategorien hin, zwischen denen Schüler häufig wechseln.</li>
+                    <li><strong>Kategorien mit vielen ausgehenden Verbindungen</strong> könnten als "Einstiegskategorien" dienen, die zu verschiedenen anderen Interessen führen.</li>
+                    <li><strong>Kategorien mit wenigen Verbindungen</strong> könnten isoliert sein oder spezifische Interessen ansprechen.</li>
+                </ul>
+                <p>Diese Informationen können für die Planung von aufeinander aufbauenden Angeboten oder für die räumliche Anordnung von Aktivitäten genutzt werden.</p>
+            </div>
+        </div>
+        
+        <!-- Co-occurrence Tab - Improved visualization -->
+        <div id="tab-cooccurrence" class="tab-content" style="display: none;">
+            <div class="chart-container">
+                <h3>Gemeinsames Auftreten von AG-Kategorien</h3>
+                <div class="chart-description">
+                    <p>Diese Analyse zeigt, welche AG-Kategorien am selben Tag von Schülern besucht werden. Stärkere Verbindungen bedeuten, dass diese Kategorien häufiger zusammen auftreten.</p>
+                </div>
+                
+                {% if cooccurrence_data.has_data %}
+                    <div class="insights-container">
+                        <h4>Häufigste Kategorienkombinationen:</h4>
+                        <ul class="insights-list colored-insights">
+                            {% for cat1, cat2, value, significance, color in cooccurrence_data.top_cooccurrences %}
+                                <li style="border-left: 4px solid {{ color }};">
+                                    <div class="insight-content">
+                                        <span class="category-pair">{{ cat1 }} + {{ cat2 }}</span>
+                                        <span class="cooccurrence-value" style="background-color: {{ color }};">{{ value|floatformat:0 }} mal</span>
+                                        <p class="insight-description">Diese Kategorien werden {{ significance }} gemeinsam am selben Tag besucht.</p>
+                                        <span class="significance-badge" style="background-color: {{ color }};">{{ significance }}</span>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    
+                    <div class="chart-wrapper">
+                        <canvas id="cooccurrenceChart"></canvas>
+                    </div>
+                    
+                    <!-- Simple network visualization -->
+                    <div class="network-visualization">
+                        <h4>Netzwerk der häufigsten Kombinationen</h4>
+                        <div id="networkDiagram" class="network-diagram"></div>
+                    </div>
+                {% else %}
+                    <div class="no-data-message">
+                        <p>Für diese Analyse sind nicht genügend Daten vorhanden.</p>
+                        {% if cooccurrence_data.error %}
+                            <p class="error-details">Details: {{ cooccurrence_data.error }}</p>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="interpretation">
+                <h3>Interpretation des gemeinsamen Auftretens</h3>
+                <p>Die Analyse des gemeinsamen Auftretens zeigt Muster in den täglichen Aktivitäten der Schüler:</p>
+                <ul>
+                    <li><strong>Häufig gemeinsam auftretende Kategorien</strong> könnten aufgrund von zeitlicher Kompatibilität, thematischer Verwandtschaft oder der Popularität bei bestimmten Schülergruppen zusammen besucht werden.</li>
+                    <li><strong>Kategorien mit vielen Verbindungen</strong> sind solche, die mit vielen anderen Kategorien kombiniert werden und könnten als "Grundkategorien" betrachtet werden.</li>
+                    <li><strong>Isolierte Kategoriepaare</strong> könnten auf sehr spezifische Interessenskombinationen hindeuten.</li>
+                </ul>
+                <p>Diese Analyse kann helfen, natürliche Aktivitätsgruppen zu identifizieren und den Stundenplan optimal zu gestalten.</p>
+            </div>
+        </div>
+        
+        <!-- Temporal Patterns Tab - Improved visualization -->
+        <div id="tab-temporal" class="tab-content" style="display: none;">
+            <div class="chart-container">
+                <h3>Zeitliche Nutzungsmuster der AG-Kategorien</h3>
+                <div class="chart-description">
+                    <p>Diese Grafik zeigt, zu welchen Tageszeiten verschiedene AG-Kategorien genutzt werden. So können Sie erkennen, welche Kategorien zu bestimmten Zeiten besonders beliebt sind.</p>
+                </div>
+                
+                {% if temporal_data.has_data %}
+                    <div class="insights-container">
+                        <h4>Auffällige zeitliche Muster:</h4>
+                        <ul class="insights-list colored-insights">
+                            {% for pattern in temporal_data.distinctive_patterns %}
+                                <li style="border-left: 4px solid {{ pattern.color }};">
+                                    <div class="insight-content">
+                                        <span class="category-name">{{ pattern.category }}</span>
+                                        <span class="pattern-value" style="background-color: {{ pattern.color }};">{{ pattern.peak_value|floatformat:1 }}%</span>
+                                        <p class="insight-description">Diese Kategorie hat eine {{ pattern.significance }} Nutzungsspitze um {{ pattern.peak_hour }}:00 Uhr.</p>
+                                        <span class="significance-badge" style="background-color: {{ pattern.color }};">{{ pattern.significance }}</span>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    
+                    <div class="chart-wrapper">
+                        <canvas id="temporalChart"></canvas>
+                    </div>
+                    
+                    <!-- Peak hours visualization removed as requested -->
+                {% else %}
+                    <div class="no-data-message">
+                        <p>Für diese Analyse sind nicht genügend Daten vorhanden.</p>
+                        {% if temporal_data.error %}
+                            <p class="error-details">Details: {{ temporal_data.error }}</p>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="interpretation">
+                <h3>Interpretation der zeitlichen Muster</h3>
+                <p>Die zeitliche Verteilung der AG-Nutzung zeigt interessante Muster:</p>
+                <ul>
+                    <li><strong>Kategorien mit deutlichen Spitzen</strong> werden hauptsächlich zu bestimmten Zeiten genutzt, was auf feste Angebote oder zeitliche Präferenzen hindeuten kann.</li>
+                    <li><strong>Kategorien mit gleichmäßiger Verteilung</strong> werden über den Tag verteilt genutzt und könnten flexibler angeboten werden.</li>
+                    <li><strong>Überlappungen zwischen Kategorien</strong> können potenzielle Konkurrenz oder Konflikte im Angebot aufzeigen.</li>
+                </ul>
+                <p>Diese Informationen können für die zeitliche Optimierung des Angebots und die Vermeidung von Überschneidungen bei beliebten Kategorien genutzt werden.</p>
+            </div>
+        </div>
+        
+        <!-- Association Rules Tab - Fixed Bedeutung column -->
+        <div id="tab-association" class="tab-content" style="display: none;">
+            <div class="chart-container">
+                <h3>Assoziationsregeln zwischen AG-Kategorien</h3>
+                <div class="chart-description">
+                    <p>Assoziationsregeln zeigen, welche Kombinationen von AG-Kategorien besonders häufig auftreten. Die Tabelle zeigt "Wenn-Dann"-Beziehungen mit verschiedenen Kennzahlen zur Stärke des Zusammenhangs.</p>
+                </div>
+                
+                {% if association_data.has_data %}
+                    <div class="rules-explanation">
+                        <h4>Erklärung der Kennzahlen:</h4>
+                        <ul>
+                            <li><strong>Support:</strong> Anteil der Schüler, die beide Kategorien besuchen</li>
+                            <li><strong>Konfidenz:</strong> Wahrscheinlichkeit, die zweite Kategorie zu besuchen, wenn die erste besucht wurde</li>
+                            <li><strong>Lift:</strong> Stärke der Assoziation (Werte > 1 zeigen positive Assoziation)</li>
+                            <li><strong>Bedeutung:</strong> Interpretierbare Einstufung der Regelstärke</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="rules-table-container">
+                        <table class="rules-table">
+                            <thead>
+                                <tr>
+                                    <th>Wenn</th>
+                                    <th>Dann</th>
+                                    <th>Support</th>
+                                    <th>Konfidenz</th>
+                                    <th>Lift</th>
+                                    <th>Bedeutung</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for rule in association_data.rules %}
+                                    <tr>
+                                        <td>{{ rule.antecedents }}</td>
+                                        <td>{{ rule.consequents }}</td>
+                                        <td>{{ rule.support|floatformat:3 }}</td>
+                                        <td>{{ rule.confidence|floatformat:3 }}</td>
+                                        <td>{{ rule.lift|floatformat:3 }}</td>
+                                        <td>
+                                            <span class="significance-badge" style="background-color: {{ rule.color }};">
+                                                {{ rule.significance }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="no-data-message">
+                        <p>Für diese Analyse sind nicht genügend Daten vorhanden.</p>
+                        {% if association_data.error %}
+                            <p class="error-details">Details: {{ association_data.error }}</p>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="interpretation">
+                <h3>Interpretation der Assoziationsregeln</h3>
+                <p>Assoziationsregeln bieten formale Einblicke in Verhaltensmuster:</p>
+                <ul>
+                    <li><strong>Hoher Support</strong> bedeutet, dass diese Kombination häufig vorkommt.</li>
+                    <li><strong>Hohe Konfidenz</strong> zeigt eine starke bedingte Wahrscheinlichkeit.</li>
+                    <li><strong>Hoher Lift</strong> (> 1) bedeutet, dass die Kategorien sich positiv beeinflussen.</li>
+                </ul>
+                <p>Diese Regeln können für zielgerichtete Empfehlungen oder zur Optimierung des Angebots genutzt werden. Zum Beispiel könnten bestimmte Kategorien zusammen angeboten oder zeitlich aufeinander abgestimmt werden.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab-Wechsel
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.style.display = 'none';
+                });
+                document.getElementById('tab-' + this.dataset.tab).style.display = 'block';
+            });
+        });
+        
+        // Overview tab navigation buttons
+        document.querySelectorAll('.nav-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const tabName = this.getAttribute('data-tab');
+                document.querySelector(`.tab[data-tab="${tabName}"]`).click();
+            });
+        });
+        
+        // Initialize visualizations on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            setupVisualizations();
+        });
+        
+        // Setup all visualizations with error handling
+        function setupVisualizations() {
+            try {
+                setupCorrelationHeatmap();
+            } catch (e) {
+                console.error("Error setting up correlation heatmap:", e);
+                const wrapper = document.getElementById('correlationHeatmapWrapper');
+                if (wrapper) {
+                    wrapper.innerHTML = '<div class="no-visualization-message">Fehler bei der Visualisierung der Korrelationen.</div>';
+                }
+            }
+            
+            try {
+                setupCooccurrenceChart();
+            } catch (e) {
+                console.error("Error setting up co-occurrence chart:", e);
+                // Provide fallback
+            }
+            
+            try {
+                setupTemporalChart();
+            } catch (e) {
+                console.error("Error setting up temporal chart:", e);
+                // Provide fallback
+            }
+            
+            try {
+                setupTransitionDiagram();
+            } catch (e) {
+                console.error("Error setting up transition diagram:", e);
+                const diagram = document.getElementById('transitionDiagram');
+                if (diagram) {
+                    diagram.innerHTML = '<div class="no-visualization-message">Fehler bei der Visualisierung der Übergänge.</div>';
+                }
+            }
+            
+            try {
+                setupNetworkDiagram();
+            } catch (e) {
+                console.error("Error setting up network diagram:", e);
+                const diagram = document.getElementById('networkDiagram');
+                if (diagram) {
+                    diagram.innerHTML = '<div class="no-visualization-message">Fehler bei der Visualisierung des Netzwerks.</div>';
+                }
+            }
+            
+            // We're removing the peak hours visualization as requested
+            // There's no need to call setupPeakHoursChart() anymore
+        }
+        
+        // Fixed correlation heatmap function with better data checking
+        function setupCorrelationHeatmap() {
+            {% if correlation_data.has_data %}
+                const corrLabels = {{ correlation_data.categories|safe }};
+                const corrMatrix = {{ correlation_data.matrix|safe }};
+                
+                // Check if we have valid data
+                if (!corrLabels || corrLabels.length === 0 || !corrMatrix || corrMatrix.length === 0) {
+                    // Fallback message
+                    const wrapper = document.getElementById('correlationHeatmapWrapper');
+                    if (wrapper) {
+                        wrapper.innerHTML = '<div class="no-visualization-message">Keine Korrelationsdaten verfügbar.</div>';
+                    }
+                    return;
+                }
+                
+                const ctx = document.getElementById('correlationHeatmap');
+                if (!ctx) return;
+                
+                // Prepare data for Chart.js matrix
+                const heatmapData = [];
+                
+                for (let i = 0; i < corrLabels.length; i++) {
+                    for (let j = 0; j < corrLabels.length; j++) {
+                        if (i >= corrMatrix.length || j >= corrMatrix[i].length) continue;
+                        
+                        let value = 0;
+                        try {
+                            value = parseFloat(corrMatrix[i][j]) || 0;
+                        } catch (e) {
+                            console.warn(`Invalid value at [${i}][${j}]:`, corrMatrix[i][j]);
+                        }
+                        
+                        heatmapData.push({
+                            x: j,
+                            y: i,
+                            v: value
+                        });
+                    }
+                }
+                
+                // Create heatmap
+                new Chart(ctx, {
+                    type: 'matrix',
+                    data: {
+                        datasets: [{
+                            label: 'Korrelation',
+                            data: heatmapData,
+                            backgroundColor: function(context) {
+                                const value = context.dataset.data[context.dataIndex].v;
+                                
+                                // Blue for positive, red for negative correlations
+                                if (value >= 0) {
+                                    const intensity = Math.floor(255 * (1 - value));
+                                    return `rgba(${intensity}, ${intensity}, 255, 0.8)`;
+                                } else {
+                                    const intensity = Math.floor(255 * Math.abs(value));
+                                    return `rgba(255, ${255 - intensity}, ${255 - intensity}, 0.8)`;
+                                }
+                            },
+                            borderWidth: 1,
+                            borderColor: 'white',
+                            width: ({ chart }) => (chart.chartArea || {}).width / corrLabels.length - 1,
+                            height: ({ chart }) => (chart.chartArea || {}).height / corrLabels.length - 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    title: function() {
+                                        return '';
+                                    },
+                                    label: function(context) {
+                                        const i = context.dataset.data[context.dataIndex].y;
+                                        const j = context.dataset.data[context.dataIndex].x;
+                                        const value = context.dataset.data[context.dataIndex].v;
+                                        if (i < corrLabels.length && j < corrLabels.length) {
+                                            return `${corrLabels[i]} - ${corrLabels[j]}: ${value.toFixed(2)}`;
+                                        }
+                                        return `Korrelation: ${value.toFixed(2)}`;
+                                    }
+                                }
+                            },
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            x: {
+                                type: 'category',
+                                labels: corrLabels,
+                                ticks: {
+                                    maxRotation: 90,
+                                    minRotation: 45
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'AG-Kategorie'
+                                }
+                            },
+                            y: {
+                                type: 'category',
+                                labels: corrLabels,
+                                offset: true,
+                                reverse: true,
+                                title: {
+                                    display: true,
+                                    text: 'AG-Kategorie'
+                                }
+                            }
+                        }
+                    }
+                });
+            {% else %}
+                // Create empty visualization with message
+                const wrapper = document.getElementById('correlationHeatmapWrapper');
+                if (wrapper) {
+                    wrapper.innerHTML = '<div class="no-visualization-message">Keine Korrelationsdaten verfügbar.</div>';
+                }
+            {% endif %}
+        }
+        
+        // Co-occurrence Chart
+        function setupCooccurrenceChart() {
+            {% if cooccurrence_data.has_data %}
+                // Create a simplified radar chart for co-occurrence
+                const ctx = document.getElementById('cooccurrenceChart');
+                if (!ctx) return;
+                
+                // Extract 5 most connected categories for better visibility
+                const nodes = {{ cooccurrence_data.nodes|safe }};
+                const links = {{ cooccurrence_data.links|safe }};
+                
+                if (!nodes || nodes.length === 0) {
+                    ctx.parentElement.innerHTML = '<div class="no-visualization-message">Keine Daten zum gemeinsamen Auftreten verfügbar.</div>';
+                    return;
+                }
+                
+                // Get 5 categories with most connections
+                const categoryConnections = {};
+                
+                // Count connections per category
+                for (const link of links) {
+                    const source = link.source;
+                    const target = link.target;
+                    
+                    categoryConnections[source] = (categoryConnections[source] || 0) + 1;
+                    categoryConnections[target] = (categoryConnections[target] || 0) + 1;
+                }
+                
+                // Sort by connection count
+                const sortedCategories = Object.keys(categoryConnections)
+                    .sort((a, b) => categoryConnections[b] - categoryConnections[a])
+                    .slice(0, 5); // Take top 5
+                
+                // Create datasets for the radar chart
+                const datasets = [];
+                const colors = ['#4285F4', '#EA4335', '#FBBC05', '#34A853', '#8A2BE2'];
+                
+                for (let i = 0; i < sortedCategories.length; i++) {
+                    const category = sortedCategories[i];
+                    
+                    // Get all connections for this category
+                    const connections = {};
+                    for (const cat of sortedCategories) {
+                        connections[cat] = 0; // Initialize with 0
+                    }
+                    
+                    // Fill in actual connections
+                    for (const link of links) {
+                        if (link.source === category && sortedCategories.includes(link.target)) {
+                            connections[link.target] = link.value;
+                        }
+                        if (link.target === category && sortedCategories.includes(link.source)) {
+                            connections[link.source] = link.value;
+                        }
+                    }
+                    
+                    // Add connection to self (always strongest)
+                    connections[category] = Math.max(...Object.values(connections)) * 1.5;
+                    
+                    datasets.push({
+                        label: category,
+                        data: sortedCategories.map(cat => connections[cat]),
+                        backgroundColor: `${colors[i % colors.length]}33`,
+                        borderColor: colors[i % colors.length],
+                        pointBackgroundColor: colors[i % colors.length],
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: colors[i % colors.length]
+                    });
+                }
+                
+                try {
+                    new Chart(ctx, {
+                        type: 'radar',
+                        data: {
+                            labels: sortedCategories,
+                            datasets: datasets
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                r: {
+                                    angleLines: {
+                                        display: true
+                                    },
+                                    suggestedMin: 0
+                                }
+                            }
+                        }
+                    });
+                } catch (e) {
+                    console.error("Error creating radar chart:", e);
+                    ctx.parentElement.innerHTML = '<div class="no-visualization-message">Fehler beim Erstellen des Radar-Charts.</div>';
+                }
+            {% endif %}
+        }
+        
+        // Temporal Chart
+        function setupTemporalChart() {
+            {% if temporal_data.has_data %}
+                const temporalData = {{ temporal_data.hourly_data|safe }};
+                const hours = Array.from({length: 24}, (_, i) => `${i}:00`);
+                
+                const ctx = document.getElementById('temporalChart');
+                if (!ctx || !temporalData || temporalData.length === 0) return;
+                
+                // Limit to top 5 categories with most distinctive patterns
+                let categories = temporalData.slice(0, 5);
+                
+                // If we have distinctive patterns, use those instead
+                {% if temporal_data.distinctive_patterns %}
+                    const distinctivePatterns = {{ temporal_data.distinctive_patterns|safe }};
+                    if (distinctivePatterns && distinctivePatterns.length > 0) {
+                        // Get categories from distinctive patterns
+                        const patternCategories = distinctivePatterns.map(p => p.category);
+                        
+                        // Filter temporal data to only include these categories
+                        categories = temporalData.filter(data => patternCategories.includes(data.category));
+                    }
+                {% endif %}
+                
+                // Create datasets with type checking
+                const datasets = [];
+                for (let i = 0; i < categories.length; i++) {
+                    const data = categories[i];
+                    if (!data || !data.category || !data.values) continue;
+                    
+                    // Make sure values is an array of numbers
+                    const values = [];
+                    for (let j = 0; j < data.values.length; j++) {
+                        try {
+                            values.push(parseFloat(data.values[j]) || 0);
+                        } catch (e) {
+                            values.push(0);
+                        }
+                    }
+                    
+                    const hue = (i * 360/categories.length) % 360;
+                    datasets.push({
+                        label: data.category,
+                        data: values,
+                        borderColor: `hsl(${hue}, 70%, 50%)`,
+                        backgroundColor: `hsla(${hue}, 70%, 50%, 0.1)`,
+                        tension: 0.4,
+                        fill: true
+                    });
+                }
+                
+                // Create the chart
+                try {
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: hours,
+                            datasets: datasets
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            return `${context.dataset.label}: ${context.parsed.y.toFixed(1)}%`;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Nutzung (%)'
+                                    }
+                                },
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: 'Uhrzeit'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                } catch (e) {
+                    console.error("Error creating temporal chart:", e);
+                    ctx.parentElement.innerHTML = '<div class="no-visualization-message">Fehler beim Erstellen des Zeitdiagramms.</div>';
+                }
+            {% endif %}
+        }
+        
+        // Simple transition diagram using styled HTML - with error fixes
+        function setupTransitionDiagram() {
+            {% if transition_data.has_data %}
+                const topTransitions = {{ transition_data.top_transitions|safe }};
+                
+                if (!topTransitions || topTransitions.length === 0) {
+                    // Fallback message
+                    const diagram = document.getElementById('transitionDiagram');
+                    if (diagram) {
+                        diagram.innerHTML = '<div class="no-visualization-message">Keine Übergangsdaten verfügbar für die Visualisierung.</div>';
+                    }
+                    return;
+                }
+                
+                const diagram = document.getElementById('transitionDiagram');
+                if (!diagram) return;
+                
+                // Create a simple visual representation using HTML/CSS
+                let html = '<div class="transition-flow">';
+                
+                // Only visualize top 3 transitions
+                const visualTransitions = topTransitions.slice(0, Math.min(3, topTransitions.length));
+                
+                for (let i = 0; i < visualTransitions.length; i++) {
+                    // Safely extract data with type checking
+                    const transition = visualTransitions[i];
+                    if (!Array.isArray(transition) || transition.length < 3) continue;
+                    
+                    const from = transition[0] || "Unbekannt";
+                    const to = transition[1] || "Unbekannt";
+                    let value = 0;
+                    try {
+                        // Make sure value is a number
+                        value = parseFloat(transition[2]) || 0;
+                    } catch (e) {
+                        console.warn("Invalid transition value:", transition[2]);
+                    }
+                    const significance = transition.length > 3 ? transition[3] : "gelegentlich";
+                    const color = transition.length > 4 ? transition[4] : "#388e3c";
+                    
+                    // Calculate arrow thickness based on value
+                    const thickness = Math.max(2, Math.min(10, value / 10));
+                    
+                    html += `
+                        <div class="transition-item">
+                            <div class="transition-category from-category">${from}</div>
+                            <div class="transition-arrow" style="border-width: ${thickness}px; border-color: ${color};">
+                                <span class="transition-value" style="background-color: ${color};">${value.toFixed(1)}%</span>
+                            </div>
+                            <div class="transition-category to-category">${to}</div>
+                        </div>
+                    `;
+                }
+                
+                html += '</div>';
+                diagram.innerHTML = html;
+            {% else %}
+                // Create empty visualization with message
+                const diagram = document.getElementById('transitionDiagram');
+                if (diagram) {
+                    diagram.innerHTML = '<div class="no-visualization-message">Keine Übergangsdaten verfügbar für die Visualisierung.</div>';
+                }
+            {% endif %}
+        }
+        
+        // Simple network diagram using styled HTML - with error fixes
+        function setupNetworkDiagram() {
+            {% if cooccurrence_data.has_data %}
+                const topCooccurrences = {{ cooccurrence_data.top_cooccurrences|safe }};
+                
+                // Check if we have valid data
+                if (!topCooccurrences || topCooccurrences.length === 0) {
+                    // Fallback message
+                    const diagram = document.getElementById('networkDiagram');
+                    if (diagram) {
+                        diagram.innerHTML = '<div class="no-visualization-message">Keine Daten zum gemeinsamen Auftreten verfügbar.</div>';
+                    }
+                    return;
+                }
+                
+                const diagram = document.getElementById('networkDiagram');
+                if (!diagram) return;
+                
+                // Create a simple visual representation using HTML/CSS
+                let html = '<div class="network-graph">';
+                
+                // Only visualize top 3 co-occurrences
+                const visualCoocurrences = topCooccurrences.slice(0, Math.min(3, topCooccurrences.length));
+                
+                for (let i = 0; i < visualCoocurrences.length; i++) {
+                    // Safely extract data with type checking
+                    const cooc = visualCoocurrences[i];
+                    if (!Array.isArray(cooc) || cooc.length < 3) continue;
+                    
+                    const cat1 = cooc[0] || "Unbekannt";
+                    const cat2 = cooc[1] || "Unbekannt";
+                    let value = 0;
+                    try {
+                        // Make sure value is a number
+                        value = parseFloat(cooc[2]) || 0;
+                    } catch (e) {
+                        console.warn("Invalid cooccurrence value:", cooc[2]);
+                    }
+                    const significance = cooc.length > 3 ? cooc[3] : "gelegentlich";
+                    const color = cooc.length > 4 ? cooc[4] : "#388e3c";
+                    
+                    // Calculate connection thickness based on value
+                    const thickness = Math.max(2, Math.min(8, value / 10));
+                    
+                    html += `
+                        <div class="network-pair">
+                            <div class="network-node">${cat1}</div>
+                            <div class="network-connection" style="height: ${thickness}px; background-color: ${color};">
+                                <span class="connection-value" style="background-color: ${color};">${value.toFixed(0)}</span>
+                            </div>
+                            <div class="network-node">${cat2}</div>
+                        </div>
+                    `;
+                }
+                
+                html += '</div>';
+                diagram.innerHTML = html;
+            {% else %}
+                // Create empty visualization with message
+                const diagram = document.getElementById('networkDiagram');
+                if (diagram) {
+                    diagram.innerHTML = '<div class="no-visualization-message">Keine Daten zum gemeinsamen Auftreten verfügbar.</div>';
+                }
+            {% endif %}
+        }
+    </script>
+</body>
+{% endblock %}

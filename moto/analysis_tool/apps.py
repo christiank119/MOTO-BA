@@ -61,6 +61,14 @@ def register_functions2():
         conditions=[],  
         show_in_nav=False
     )
+    register_view(
+        view_func=views.category_comparison_view,
+        url_name="category_comparison",
+        label="AG-Kategorien Vergleichsanalyse",
+        conditions=[],
+        show_in_nav=True
+    )
+
 
     register_view(views.save_polygon, "heatmap_save", "Save", conditions=[], show_in_nav=False)
     register_view(views.get_room_data, "heatmap_get_room_data", "Save", conditions=[], show_in_nav=False)
