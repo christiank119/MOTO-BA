@@ -53,8 +53,8 @@ def category_analysis_view(request, category_id):
     # Get temporal distribution data using existing functions
     temporal_data = get_temporal_data(category)
     
-    # Get correlation data with other categories
-    correlation_data = get_correlation_data(category)
+    # Get relative time ratios with other categories
+    relative_time_data = get_relative_time_data(category)
     
     # Get student analysis data
     student_data = get_student_analysis_data(category)
@@ -67,6 +67,9 @@ def category_analysis_view(request, category_id):
     
     # Calculate trends
     trend_data = get_trend_data(category)
+    
+    # Get average continuous session duration for this category
+    avg_continuous_duration = get_avg_continuous_duration(category)
     
     # Compile all data for the template
     context = {
@@ -95,12 +98,15 @@ def category_analysis_view(request, category_id):
         'popular_classes': student_data['popular_classes'],
         'related_interests': student_data['related_interests'],
         
-        # Correlation data
-        'category_names': correlation_data['category_names'],
-        'avg_durations': correlation_data['avg_durations'],
-        'complementary_categories': correlation_data['complementary_categories'],
-        'complementary_values': correlation_data['complementary_values'],
-        'top_complementary': correlation_data['top_complementary'],
+        # Relative time data (new)
+        'category_names': relative_time_data['category_names'],
+        'relative_times': relative_time_data['relative_times'],
+        'avg_continuous_duration': avg_continuous_duration,
+        
+        # Complementary categories
+        'complementary_categories': student_data.get('complementary_categories', []),
+        'complementary_values': student_data.get('complementary_values', []),
+        'top_complementary': student_data.get('top_complementary'),
         
         # Room data
         'room_labels': room_data['labels'],
@@ -135,6 +141,55 @@ def get_average_category_stats():
     }
     
     return avg_stats
+
+def get_avg_continuous_duration(category):
+    """
+    Gets the average continuous session duration for this category.
+    """
+    avg_duration = StudentAGCategoryAnalysis.objects.filter(ag_kategorie=category).aggregate(
+        avg=Avg('average_session_duration')
+    )['avg'] or 0
+    
+    # Convert to minutes for display
+    return round(avg_duration * 60, 1)  # Convert hours to minutes
+
+def get_relative_time_data(category):
+    """
+    Uses compute_relative_time_ratios to get the relative time spent in other categories
+    compared to 1 hour in the specified category.
+    """
+    try:
+        # Use the existing compute_relative_time_ratios function
+        ratios = compute_relative_time_ratios(category.name)
+        
+        if ratios:
+            # Prepare data for chart
+            category_names = list(ratios.keys())
+            
+            # First value is 1.0 (ratio of current category to itself)
+            relative_times = []
+            
+            # Add ratios for other categories and convert NumPy types to Python native types
+            for cat_name in list(ratios.keys()):
+                # Convert numpy.float64 to Python float
+                relative_times.append(float(ratios[cat_name]))
+            
+            print("Category names:", category_names)
+            print("Relative times:", relative_times)
+            
+            return {
+                'category_names': category_names,
+                'relative_times': relative_times
+            }
+    except Exception as e:
+        print(f"Error getting relative time ratios: {e}")
+    
+    # Fallback with minimal data (current category only)
+    return {
+        'category_names': [category.name],
+        'relative_times': [1.0]
+    }
+
 
 def get_temporal_data(category):
     """
@@ -215,85 +270,6 @@ def get_peak_hours(hourly_data):
     
     return {'start': 13, 'end': 15}  # Default if no data
 
-def get_correlation_data(category):
-    """
-    Gets correlation data between this category and others using compute_correlation_matrix.
-    """
-    try:
-        # Use the existing correlation matrix function
-        from analysis_tool.utils.compute_ag_category_metrics import compute_correlation_matrix
-        
-        corr_matrix = compute_correlation_matrix()
-        
-        # Check if we have data for this category
-        if category.name in corr_matrix.columns:
-            correlations = corr_matrix[category.name]
-            # Sort by correlation strength
-            correlations = correlations.sort_values(ascending=False)
-            # Remove self-correlation
-            correlations = correlations[correlations.index != category.name]
-            
-            # Get top correlated categories
-            top_categories = correlations.head(5)
-            
-            # Get actual average duration data instead of using placeholders
-            from analysis_tool.models import StudentSessionBuffer, AGKategorie
-            from django.db.models import Avg, F, ExpressionWrapper, DurationField
-            
-            category_durations = {}
-            
-            # For each correlated category, get actual duration data
-            for cat_name in list(top_categories.index) + [category.name]:
-                try:
-                    cat_obj = AGKategorie.objects.get(name=cat_name)
-                    # Calculate duration using ExpressionWrapper to handle time differences correctly
-                    sessions = StudentSessionBuffer.objects.filter(ag_kategorie=cat_obj)
-                    
-                    if sessions.exists():
-                        # Calculate duration in minutes directly from the database
-                        duration_expr = ExpressionWrapper(
-                            F('session_end') - F('session_start'),
-                            output_field=DurationField()
-                        )
-                        sessions = sessions.annotate(duration=duration_expr)
-                        # Filter out zero-length sessions
-                        sessions = sessions.exclude(session_start=F('session_end'))
-                        
-                        if sessions.exists():
-                            # Get average duration in minutes
-                            total_seconds = sum(s.duration.total_seconds() for s in sessions)
-                            avg_minutes = (total_seconds / 60) / sessions.count()
-                            category_durations[cat_name] = round(avg_minutes, 1)
-                        else:
-                            category_durations[cat_name] = 0
-                    else:
-                        category_durations[cat_name] = 0
-                except AGKategorie.DoesNotExist:
-                    category_durations[cat_name] = 0
-            
-            # Prepare the return data
-            cat_names = list(category_durations.keys())
-            durations = [category_durations[name] for name in cat_names]
-            
-            return {
-                'category_names': cat_names,
-                'avg_durations': durations,
-                'complementary_categories': list(top_categories.index),
-                'complementary_values': list(top_categories.values),
-                'top_complementary': top_categories.index[0] if len(top_categories) > 0 else None
-            }
-    except Exception as e:
-        print(f"Error getting correlation data: {e}")
-    
-    # Minimal fallback with minimal placeholder data
-    return {
-        'category_names': [category.name, 'Andere Kategorie'],
-        'avg_durations': [0, 0],  # Show zeros instead of placeholders
-        'complementary_categories': ['Keine Daten'],
-        'complementary_values': [0],
-        'top_complementary': None
-    }
-
 def get_student_analysis_data(category):
     """
     Gets student participation data for this category, leveraging StudentAGCategoryAnalysis.
@@ -329,12 +305,21 @@ def get_student_analysis_data(category):
             cooccurrence = compute_cooccurrence_network()
             if category.name in cooccurrence.index:
                 related = cooccurrence.loc[category.name].sort_values(ascending=False).head(3)
+                top_complementary = related.index[0] if len(related) > 0 else None
+                complementary_categories = list(related.index)
+                complementary_values = list(related.values)
                 related_interests = ", ".join(related.index)
             else:
                 related_interests = "Keine Daten"
+                top_complementary = None
+                complementary_categories = []
+                complementary_values = []
         except Exception as e:
             print(f"Error getting cooccurrence data: {e}")
-            related_interests = "Sport, Kreativ, Natur"  # Fallback
+            related_interests = "Keine Daten"
+            top_complementary = None
+            complementary_categories = []
+            complementary_values = []
         
         return {
             'names': student_names,
@@ -342,7 +327,10 @@ def get_student_analysis_data(category):
             'avg_stay': avg_stay_minutes,
             'returning_percentage': returning_percentage,
             'popular_classes': popular_classes,
-            'related_interests': related_interests
+            'related_interests': related_interests,
+            'top_complementary': top_complementary,
+            'complementary_categories': complementary_categories,
+            'complementary_values': complementary_values
         }
     
     # Fallback to placeholder data
@@ -352,7 +340,10 @@ def get_student_analysis_data(category):
         'avg_stay': 45.0,
         'returning_percentage': 65.0,
         'popular_classes': "3a, 4b, 2c",
-        'related_interests': "Sport, Kreativ, Natur"
+        'related_interests': "Keine Daten",
+        'complementary_categories': [],
+        'complementary_values': [],
+        'top_complementary': None
     }
 
 def get_room_analytics(category):

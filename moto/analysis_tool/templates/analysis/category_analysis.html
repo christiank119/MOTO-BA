@@ -213,29 +213,25 @@
             </div>
         </div>
         
-        <!-- Nutzungsmuster-Tab (Ersetzt "Schüleranalyse") -->
+        <!-- Nutzungsmuster-Tab (Updated) -->
         <div id="tab-patterns" class="tab-content" style="display: none;">
             <div class="chart-container">
-                <h3>Durchschnittliche Verweildauer nach Kategorie</h3>
+                <h3>Relative Zeitverteilung im Vergleich</h3>
                 <div class="chart-wrapper">
-                    <canvas id="stayDurationChart"></canvas>
+                    <canvas id="relativeTimeChart"></canvas>
                 </div>
                 <div class="chart-description">
-                    <p>Diese Grafik zeigt die durchschnittliche Verweildauer pro Besuch in dieser Kategorie im Vergleich zu anderen Kategorien. Die Werte geben an, wie lange ein Besuch in der jeweiligen Kategorie im Durchschnitt dauert (in Minuten).</p>
+                    <p>Diese Grafik zeigt die relative Zeit, die Schüler in den verschiedenen Kategorien verbringen, wenn sie eine Stunde (60 Minuten) in "{{ category.name }}" verbringen. Die Werte geben an, wie viele Minuten in anderen Kategorien verbracht werden im Verhältnis zu einer Stunde in dieser Kategorie.</p>
                 </div>
             </div>
             
             <div class="chart-container">
-                <h3>Durchschnittliche Verweildauer</h3>
-                <div class="metric-value">
-                    {{ avg_student_stay|floatformat:1 }} Minuten
+                <h3>Durchschnittliche zusammenhängende Besuchszeit</h3>
+                <div class="metric-value" style="font-size: 1.8em; font-weight: 600; text-align: center; margin: 20px 0;">
+                    {{ avg_continuous_duration|floatformat:1 }} Minuten
                 </div>
                 <div class="chart-description">
-                    <p>Diese Grafik zeigt die durchschnittliche Verweildauer pro Besuch in der Kategorie "{{ category.name }}". Eine längere durchschnittliche Verweildauer deutet auf ein höheres Engagement der Teilnehmer hin.</p>
-                </div>
-            </div>
-                <div class="chart-description">
-                    <p>Diese Grafik zeigt die durchschnittliche Verweildauer pro Besuch für "{{ category.name }}" im Vergleich zum Referenzwert von 60 Minuten. Eine längere durchschnittliche Verweildauer deutet auf ein höheres Engagement der Teilnehmer hin.</p>
+                    <p>Dieser Wert zeigt die durchschnittliche Dauer eines zusammenhängenden Besuchs in der Kategorie "{{ category.name }}". Eine längere durchschnittliche Verweildauer deutet auf ein höheres Engagement und Interesse der Teilnehmer hin.</p>
                 </div>
             </div>
             
@@ -245,7 +241,7 @@
                     Die Analyse der Nutzungsprofile für "{{ category.name }}" zeigt folgende Charakteristiken:
                 </p>
                 <ul>
-                    <li><strong>Durchschnittlicher Aufenthalt:</strong> {{ avg_student_stay|floatformat:1 }} Minuten pro Besuch</li>
+                    <li><strong>Durchschnittliche zusammenhängende Besuchszeit:</strong> {{ avg_continuous_duration|floatformat:1 }} Minuten pro Besuch</li>
                     <li><strong>Wiederkehrende Besuche:</strong> {{ returning_visitors_percentage|floatformat:1 }}% der Besuche sind Wiederholungsbesuche</li>
                     <li><strong>Beliebteste Altersgruppen:</strong> Besonders beliebt bei Klassen {{ popular_classes }}</li>
                     {% if top_complementary %}
@@ -458,18 +454,18 @@
             });
         }
         
-        // Verweildauer im Vergleich
+        // Relative Zeitverteilung Chart
         const categoryNames = {{ category_names|safe }} || ['{{ category.name }}', 'Andere Kategorie 1', 'Andere Kategorie 2'];
-        const avgDurations = {{ avg_durations|safe }} || [{{ avg_student_stay|default:30 }}, 25, 35];
+        const relativeTimes = {{ relative_times|safe }} || [60, 0, 0];
         
-        const stayDurationCtx = document.getElementById('stayDurationChart').getContext('2d');
-        new Chart(stayDurationCtx, {
+        const relativeTimeCtx = document.getElementById('relativeTimeChart').getContext('2d');
+        new Chart(relativeTimeCtx, {
             type: 'bar',
             data: {
                 labels: categoryNames,
                 datasets: [{
-                    label: 'Durchschnittliche Verweildauer (Min.)',
-                    data: avgDurations,
+                    label: 'Zeit pro Stunde in {{ category.name }} (Minuten)',
+                    data: relativeTimes,
                     backgroundColor: [
                         'rgba(255, 99, 132, 0.7)',
                         'rgba(54, 162, 235, 0.7)',
@@ -500,6 +496,16 @@
                         title: {
                             display: true,
                             text: 'Minuten'
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const value = context.raw || 0;
+                                return `${value.toFixed(1)} Minuten`;
+                            }
                         }
                     }
                 }
