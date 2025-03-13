@@ -80,17 +80,27 @@ def register_template_extension(extension_point, template_name):
     return decorator
 
 def get_extensions(extension_point, context=None):
-
     extensions = []
     for extension_func in _EXTENSION_REGISTRY.get(extension_point, []):
         if context is not None:
-            # Make a copy of the context to avoid modifications affecting other extensions
-            context_copy = context.copy() if hasattr(context, 'copy') else dict(context)
-            result = extension_func(context_copy)
+            # Handle context more safely
+            if hasattr(context, 'flatten'):
+                # Django template Context objects have a flatten method
+                context_dict = context.flatten()
+            elif hasattr(context, 'copy'):
+                context_dict = context.copy()
+            else:
+                # Try to convert to dict, but ensure it's a dict-like object first
+                try:
+                    context_dict = dict(context)
+                except (TypeError, ValueError):
+                    context_dict = {}
+            
+            result = extension_func(context_dict)
             extensions.append(result)
         else:
             extensions.append(extension_func())
-    return extensions
+    return mark_safe(''.join(str(ext) for ext in extensions if ext is not None))
 
 def extension_processor(request):
     """
