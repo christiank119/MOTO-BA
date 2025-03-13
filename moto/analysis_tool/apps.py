@@ -45,6 +45,15 @@ def register_functions2():
             show_in_nav=True
         )
 
+    register_view(
+        view_func=views.student_analysis_view,
+        url_name="student_analysis",
+        label="Schüleranalyse",
+        conditions=[],
+        nav_conditions=[],
+        show_in_nav=False  # Only accessed from pupil view
+    )
+
     register_view(views.save_polygon, "heatmap_save", "Save", conditions=[], show_in_nav=False)
     register_view(views.get_room_data, "heatmap_get_room_data", "Save", conditions=[], show_in_nav=False)
 

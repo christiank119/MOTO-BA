@@ -8,4 +8,5 @@ urlpatterns = [
     path('heatmap/upload/', views.upload_raumplan, name='heatmap_upload'),
     path('heatmap/get_room_data/', views.get_room_data, name='heatmap_get_room_data'),
     path('heatmap/show/', views.raumplan_show, name='heatmap_show'),
+    path('student/<int:pupil_id>/', views.student_analysis_view, name='student_analysis'),
 ]

@@ -8,8 +8,8 @@ def add_analysis_button(context):
     """Add analysis button to pupil navigation."""
     try:
         pupil_id = context.get('nutzer').id
-        #url = reverse('student_analysis', args=[pupil_id])
-        url = reverse('heatmap_show')
+        url = reverse('student_analysis', args=[pupil_id])
+        #url = reverse('heatmap_show')
         button_html = f'<button class="historybutton" onclick="location.href=\'{url}\';"> Detailanalyse </button>'
         return mark_safe(button_html)
     except (AttributeError, KeyError):
