@@ -219,8 +219,10 @@ def get_correlation_data(category):
     """
     Gets correlation data between this category and others using compute_correlation_matrix.
     """
-    # Try to get correlation matrix from utility function
     try:
+        # Use the existing correlation matrix function
+        from analysis_tool.utils.compute_ag_category_metrics import compute_correlation_matrix
+        
         corr_matrix = compute_correlation_matrix()
         
         # Check if we have data for this category
@@ -234,9 +236,48 @@ def get_correlation_data(category):
             # Get top correlated categories
             top_categories = correlations.head(5)
             
+            # Get actual average duration data instead of using placeholders
+            from analysis_tool.models import StudentSessionBuffer, AGKategorie
+            from django.db.models import Avg, F, ExpressionWrapper, DurationField
+            
+            category_durations = {}
+            
+            # For each correlated category, get actual duration data
+            for cat_name in list(top_categories.index) + [category.name]:
+                try:
+                    cat_obj = AGKategorie.objects.get(name=cat_name)
+                    # Calculate duration using ExpressionWrapper to handle time differences correctly
+                    sessions = StudentSessionBuffer.objects.filter(ag_kategorie=cat_obj)
+                    
+                    if sessions.exists():
+                        # Calculate duration in minutes directly from the database
+                        duration_expr = ExpressionWrapper(
+                            F('session_end') - F('session_start'),
+                            output_field=DurationField()
+                        )
+                        sessions = sessions.annotate(duration=duration_expr)
+                        # Filter out zero-length sessions
+                        sessions = sessions.exclude(session_start=F('session_end'))
+                        
+                        if sessions.exists():
+                            # Get average duration in minutes
+                            total_seconds = sum(s.duration.total_seconds() for s in sessions)
+                            avg_minutes = (total_seconds / 60) / sessions.count()
+                            category_durations[cat_name] = round(avg_minutes, 1)
+                        else:
+                            category_durations[cat_name] = 0
+                    else:
+                        category_durations[cat_name] = 0
+                except AGKategorie.DoesNotExist:
+                    category_durations[cat_name] = 0
+            
+            # Prepare the return data
+            cat_names = list(category_durations.keys())
+            durations = [category_durations[name] for name in cat_names]
+            
             return {
-                'category_names': list(top_categories.index),
-                'avg_durations': [30 + i*5 for i in range(len(top_categories))],  # Placeholder, replace with real data
+                'category_names': cat_names,
+                'avg_durations': durations,
                 'complementary_categories': list(top_categories.index),
                 'complementary_values': list(top_categories.values),
                 'top_complementary': top_categories.index[0] if len(top_categories) > 0 else None
@@ -244,15 +285,13 @@ def get_correlation_data(category):
     except Exception as e:
         print(f"Error getting correlation data: {e}")
     
-    # Fallback to basic data
-    other_categories = AGKategorie.objects.exclude(id=category.id)[:5]
-    
+    # Minimal fallback with minimal placeholder data
     return {
-        'category_names': [cat.name for cat in other_categories],
-        'avg_durations': [30 + i*5 for i in range(len(other_categories))],
-        'complementary_categories': [cat.name for cat in other_categories],
-        'complementary_values': [10 + i*5 for i in range(len(other_categories))],
-        'top_complementary': other_categories[0].name if other_categories else None
+        'category_names': [category.name, 'Andere Kategorie'],
+        'avg_durations': [0, 0],  # Show zeros instead of placeholders
+        'complementary_categories': ['Keine Daten'],
+        'complementary_values': [0],
+        'top_complementary': None
     }
 
 def get_student_analysis_data(category):

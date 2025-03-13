@@ -91,6 +91,22 @@
     border-left: 3px solid var(--select_color_background);
   }
   
+  /* No data message */
+  .no-data-message {
+    padding: 15px;
+    background-color: rgba(245, 245, 245, 0.7);
+    border-radius: 8px;
+    text-align: center;
+    margin: 20px 0;
+    border: 1px dashed #ccc;
+  }
+  
+  .no-data-message p {
+    margin: 0;
+    color: #666;
+    font-style: italic;
+  }
+  
   /* Metrics table */
   .metrics-table {
     margin-bottom: 30px;

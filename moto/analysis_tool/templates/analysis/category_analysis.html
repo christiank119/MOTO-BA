@@ -39,7 +39,7 @@
         <div class="tabs">
             <div class="tab active" data-tab="overview">Übersicht</div>
             <div class="tab" data-tab="utilization">Auslastung</div>
-            <div class="tab" data-tab="students">Schüleranalyse</div>
+            <div class="tab" data-tab="patterns">Nutzungsmuster</div>
             <div class="tab" data-tab="rooms">Raumnutzung</div>
         </div>
         
@@ -47,7 +47,7 @@
         <div id="tab-overview" class="tab-content">
             <div class="overview-cards">
                 <div class="overview-card">
-                    <h3>Gesamtnutzungszeit</h3>
+                    <h3>Angebotene Gesamtzeit</h3>
                     <p class="value">{{ stats.total_available_time|floatformat:1 }} Stunden</p>
                     <p class="sub-value">
                         {% if stats.total_available_time > avg_stats.avg_category_time %}
@@ -59,7 +59,7 @@
                 </div>
                 
                 <div class="overview-card">
-                    <h3>Tatsächliche Nutzung</h3>
+                    <h3>Tatsächliche Nutzungszeit</h3>
                     <p class="value">{{ stats.actual_usage_time|floatformat:1 }} Stunden</p>
                     <p class="sub-value">
                         {{ stats.utilization_percentage|floatformat:1 }}% Auslastung
@@ -154,7 +154,7 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td>Gesamtzeit</td>
+                            <td>Angebotene Gesamtzeit</td>
                             <td>{{ stats.total_available_time|floatformat:1 }} Stunden</td>
                             <td>
                                 {% if stats.total_available_time > avg_stats.avg_category_time %}
@@ -165,7 +165,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td>Tatsächliche Nutzung</td>
+                            <td>Tatsächliche Nutzungszeit</td>
                             <td>{{ stats.actual_usage_time|floatformat:1 }} Stunden</td>
                             <td>
                                 {% if stats.actual_usage_time > avg_stats.avg_usage_time %}
@@ -213,48 +213,44 @@
             </div>
         </div>
         
-        <!-- Schüleranalyse-Tab -->
-        <div id="tab-students" class="tab-content" style="display: none;">
+        <!-- Nutzungsmuster-Tab (Ersetzt "Schüleranalyse") -->
+        <div id="tab-patterns" class="tab-content" style="display: none;">
             <div class="chart-container">
-                <h3>Schüler mit höchstem Interesse an {{ category.name }}</h3>
+                <h3>Durchschnittliche Verweildauer nach Kategorie</h3>
                 <div class="chart-wrapper">
-                    <canvas id="topStudentsChart"></canvas>
+                    <canvas id="stayDurationChart"></canvas>
                 </div>
                 <div class="chart-description">
-                    <p>Diese Grafik zeigt die 10 Schüler, die am meisten Zeit in dieser Kategorie verbracht haben.</p>
+                    <p>Diese Grafik zeigt die durchschnittliche Verweildauer pro Besuch in dieser Kategorie im Vergleich zu anderen Kategorien. Die Werte geben an, wie lange ein Besuch in der jeweiligen Kategorie im Durchschnitt dauert (in Minuten).</p>
                 </div>
             </div>
             
             <div class="chart-container">
                 <h3>Durchschnittliche Verweildauer</h3>
-                <div class="chart-wrapper">
-                    <canvas id="stayDurationChart"></canvas>
+                <div class="metric-value">
+                    {{ avg_student_stay|floatformat:1 }} Minuten
                 </div>
                 <div class="chart-description">
-                    <p>Diese Grafik zeigt die durchschnittliche Verweildauer der Schüler in dieser Kategorie im Vergleich zu anderen Kategorien.</p>
+                    <p>Diese Grafik zeigt die durchschnittliche Verweildauer pro Besuch in der Kategorie "{{ category.name }}". Eine längere durchschnittliche Verweildauer deutet auf ein höheres Engagement der Teilnehmer hin.</p>
                 </div>
             </div>
-            
-            <div class="chart-container">
-                <h3>Komplementäre Kategorien</h3>
-                <div class="chart-wrapper">
-                    <canvas id="complementaryChart"></canvas>
-                </div>
                 <div class="chart-description">
-                    <p>Diese Grafik zeigt, welche anderen Kategorien von Schülern besucht werden, die auch "{{ category.name }}" besuchen. {% if top_complementary %}Am häufigsten wird "{{ category.name }}" mit "{{ top_complementary }}" kombiniert.{% endif %}</p>
+                    <p>Diese Grafik zeigt die durchschnittliche Verweildauer pro Besuch für "{{ category.name }}" im Vergleich zum Referenzwert von 60 Minuten. Eine längere durchschnittliche Verweildauer deutet auf ein höheres Engagement der Teilnehmer hin.</p>
                 </div>
             </div>
             
             <div class="interpretation">
-                <h3>Schülerprofilanalyse</h3>
+                <h3>Nutzungsprofilanalyse</h3>
                 <p>
-                    Die Analyse der Schülerprofile, die "{{ category.name }}" besuchen, zeigt folgende Charakteristiken:
+                    Die Analyse der Nutzungsprofile für "{{ category.name }}" zeigt folgende Charakteristiken:
                 </p>
                 <ul>
                     <li><strong>Durchschnittlicher Aufenthalt:</strong> {{ avg_student_stay|floatformat:1 }} Minuten pro Besuch</li>
-                    <li><strong>Wiederkehrende Besucher:</strong> {{ returning_visitors_percentage|floatformat:1 }}% der Schüler kommen regelmäßig zurück</li>
-                    <li><strong>Altersgruppen:</strong> Besonders beliebt bei Schülern der Klassen {{ popular_classes }}</li>
-                    <li><strong>Interessenprofil:</strong> Schüler dieser Kategorie zeigen oft auch Interesse an {{ related_interests }}</li>
+                    <li><strong>Wiederkehrende Besuche:</strong> {{ returning_visitors_percentage|floatformat:1 }}% der Besuche sind Wiederholungsbesuche</li>
+                    <li><strong>Beliebteste Altersgruppen:</strong> Besonders beliebt bei Klassen {{ popular_classes }}</li>
+                    {% if top_complementary %}
+                    <li><strong>Häufige Kombinationen:</strong> "{{ category.name }}" wird oft zusammen mit "{{ top_complementary }}" besucht</li>
+                    {% endif %}
                 </ul>
             </div>
         </div>
@@ -262,43 +258,55 @@
         <!-- Raumnutzung-Tab -->
         <div id="tab-rooms" class="tab-content" style="display: none;">
             <div class="chart-container">
-                <h3>Nutzung nach Räumen</h3>
-                <div class="chart-wrapper">
-                    <canvas id="roomUsageChart"></canvas>
-                </div>
+                <h3>Raumauslastung (gesamt)</h3>
                 <div class="chart-description">
-                    <p>Diese Grafik zeigt, welche Räume am häufigsten für "{{ category.name }}"-Aktivitäten genutzt werden.</p>
+                    <p>Die Raumauslastung wird berechnet, indem die tatsächliche Nutzungszeit durch die verfügbare Zeit geteilt wird. Eine höhere Auslastung bedeutet, dass der Raum effektiver genutzt wird.</p>
+                </div>
+                <div class="no-data-message" {% if room_labels %}style="display: none;"{% endif %}>
+                    <p>Für diese Kategorie sind derzeit keine Raumnutzungsdaten verfügbar.</p>
+                </div>
+                <div class="chart-wrapper" {% if not room_labels %}style="display: none;"{% endif %}>
+                    <canvas id="roomUsageChart"></canvas>
                 </div>
             </div>
             
             <div class="chart-container">
-                <h3>Raumbelegung im Zeitverlauf</h3>
-                <div class="chart-wrapper">
-                    <canvas id="roomOccupancyChart"></canvas>
-                </div>
+                <h3>Durchschnittliche Raumbelegung nach Tageszeit</h3>
                 <div class="chart-description">
-                    <p>Diese Grafik zeigt die durchschnittliche Raumbelegung für "{{ category.name }}"-Aktivitäten über die Tageszeit.</p>
+                    <p>Diese Grafik zeigt die durchschnittliche Raumbelegung für "{{ category.name }}"-Aktivitäten über den Tagesverlauf. Hohe Werte deuten auf Spitzenzeiten hin, in denen die Räume stark ausgelastet sind.</p>
+                </div>
+                <div class="no-data-message" {% if room_occupancy and room_occupancy|length > 0 %}style="display: none;"{% endif %}>
+                    <p>Für diese Kategorie sind derzeit keine Daten zur Raumbelegung nach Tageszeit verfügbar.</p>
+                </div>
+                <div class="chart-wrapper" {% if not room_occupancy or room_occupancy|length == 0 %}style="display: none;"{% endif %}>
+                    <canvas id="roomOccupancyChart"></canvas>
                 </div>
             </div>
             
             <div class="room-cards">
                 <h3>Top-Räume für {{ category.name }}</h3>
                 
-                {% for room in top_rooms %}
-                <div class="room-card">
-                    <div class="room-card-header">
-                        <h4>Raum {{ room.number }}</h4>
-                        <span class="usage-badge" style="background-color: {{ room.color }}">
-                            {{ room.usage_percentage|floatformat:1 }}% Nutzung
-                        </span>
+                {% if top_rooms %}
+                    {% for room in top_rooms %}
+                    <div class="room-card">
+                        <div class="room-card-header">
+                            <h4>Raum {{ room.number }}</h4>
+                            <span class="usage-badge" style="background-color: {{ room.color }}">
+                                {{ room.usage_percentage|floatformat:1 }}% Nutzung
+                            </span>
+                        </div>
+                        <div class="room-card-body">
+                            <p><strong>Kapazität:</strong> {{ room.capacity }} Personen</p>
+                            <p><strong>Durchschn. Belegung:</strong> {{ room.avg_occupancy|floatformat:1 }} Personen</p>
+                            <p><strong>Beliebteste Zeit:</strong> {{ room.peak_time }}</p>
+                        </div>
                     </div>
-                    <div class="room-card-body">
-                        <p><strong>Kapazität:</strong> {{ room.capacity }} Personen</p>
-                        <p><strong>Durchschn. Belegung:</strong> {{ room.avg_occupancy|floatformat:1 }} Personen</p>
-                        <p><strong>Beliebteste Zeit:</strong> {{ room.peak_time }}</p>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-data-message">
+                        <p>Für diese Kategorie sind derzeit keine Rauminformationen verfügbar.</p>
                     </div>
-                </div>
-                {% endfor %}
+                {% endif %}
             </div>
             
             <div class="chart-container">
@@ -412,78 +420,47 @@
         const utilizationDates = {{ utilization_dates|safe }};
         const utilizationValues = {{ utilization_values|safe }};
         
-        const utilizationTrendCtx = document.getElementById('utilizationTrendChart').getContext('2d');
-        new Chart(utilizationTrendCtx, {
-            type: 'line',
-            data: {
-                labels: utilizationDates,
-                datasets: [{
-                    label: 'Auslastung (%)',
-                    data: utilizationValues,
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    backgroundColor: 'rgba(255, 99, 132, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        title: {
-                            display: true,
-                            text: 'Auslastung (%)'
-                        }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Datum'
-                        }
-                    }
-                }
-            }
-        });
-        
-        // Top-Schüler
-        const studentNames = {{ student_names|safe }};
-        const studentTimes = {{ student_times|safe }};
-        
-        const topStudentsCtx = document.getElementById('topStudentsChart').getContext('2d');
-        new Chart(topStudentsCtx, {
-            type: 'bar',
-            data: {
-                labels: studentNames,
-                datasets: [{
-                    label: 'Verbrachte Zeit (Stunden)',
-                    data: studentTimes,
-                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                indexAxis: 'y',
-                scales: {
-                    x: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Stunden'
+        if (utilizationDates && utilizationValues && utilizationDates.length > 0) {
+            const utilizationTrendCtx = document.getElementById('utilizationTrendChart').getContext('2d');
+            new Chart(utilizationTrendCtx, {
+                type: 'line',
+                data: {
+                    labels: utilizationDates,
+                    datasets: [{
+                        label: 'Auslastung (%)',
+                        data: utilizationValues,
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Auslastung (%)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Datum'
+                            }
                         }
                     }
                 }
-            }
-        });
+            });
+        }
         
         // Verweildauer im Vergleich
-        const categoryNames = {{ category_names|safe }};
-        const avgDurations = {{ avg_durations|safe }};
+        const categoryNames = {{ category_names|safe }} || ['{{ category.name }}', 'Andere Kategorie 1', 'Andere Kategorie 2'];
+        const avgDurations = {{ avg_durations|safe }} || [{{ avg_student_stay|default:30 }}, 25, 35];
         
         const stayDurationCtx = document.getElementById('stayDurationChart').getContext('2d');
         new Chart(stayDurationCtx, {
@@ -529,107 +506,80 @@
             }
         });
         
-        // Komplementäre Kategorien
-        const complementaryCategories = {{ complementary_categories|safe }};
-        const complementaryValues = {{ complementary_values|safe }};
-        
-        const complementaryCtx = document.getElementById('complementaryChart').getContext('2d');
-        new Chart(complementaryCtx, {
-            type: 'doughnut',
-            data: {
-                labels: complementaryCategories,
-                datasets: [{
-                    data: complementaryValues,
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 0.7)',
-                        'rgba(54, 162, 235, 0.7)',
-                        'rgba(255, 206, 86, 0.7)',
-                        'rgba(75, 192, 192, 0.7)',
-                        'rgba(153, 102, 255, 0.7)',
-                        'rgba(255, 159, 64, 0.7)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'right',
-                    }
-                }
-            }
-        });
-        
         // Raumnutzung
-        const roomLabels = {{ room_labels|safe }};
-        const roomUsage = {{ room_usage|safe }};
+        const roomLabels = {{ room_labels|safe }} || [];
+        const roomUsage = {{ room_usage|safe }} || [];
         
-        const roomUsageCtx = document.getElementById('roomUsageChart').getContext('2d');
-        new Chart(roomUsageCtx, {
-            type: 'bar',
-            data: {
-                labels: roomLabels,
-                datasets: [{
-                    label: 'Nutzungszeit (Stunden)',
-                    data: roomUsage,
-                    backgroundColor: 'rgba(255, 206, 86, 0.7)',
-                    borderColor: 'rgba(255, 206, 86, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Stunden'
+        if (roomLabels && roomLabels.length > 0) {
+            const roomUsageCtx = document.getElementById('roomUsageChart').getContext('2d');
+            new Chart(roomUsageCtx, {
+                type: 'bar',
+                data: {
+                    labels: roomLabels,
+                    datasets: [{
+                        label: 'Nutzungszeit (Stunden)',
+                        data: roomUsage,
+                        backgroundColor: 'rgba(255, 206, 86, 0.7)',
+                        borderColor: 'rgba(255, 206, 86, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Stunden'
+                            }
                         }
                     }
                 }
-            }
-        });
+            });
+        }
         
         // Raumbelegung nach Tageszeit
-        const roomOccupancyCtx = document.getElementById('roomOccupancyChart').getContext('2d');
-        new Chart(roomOccupancyCtx, {
-            type: 'line',
-            data: {
-                labels: hourLabels,
-                datasets: [{
-                    label: 'Durchschnittliche Belegung (%)',
-                    data: {{ room_occupancy|safe }},
-                    borderColor: 'rgba(255, 159, 64, 1)',
-                    backgroundColor: 'rgba(255, 159, 64, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        title: {
-                            display: true,
-                            text: 'Belegung (%)'
-                        }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Stunde'
+        const roomOccupancy = {{ room_occupancy|safe }} || [];
+        
+        if (roomOccupancy && roomOccupancy.length > 0) {
+            const roomOccupancyCtx = document.getElementById('roomOccupancyChart').getContext('2d');
+            new Chart(roomOccupancyCtx, {
+                type: 'line',
+                data: {
+                    labels: hourLabels,
+                    datasets: [{
+                        label: 'Durchschnittliche Belegung (%)',
+                        data: roomOccupancy,
+                        borderColor: 'rgba(255, 159, 64, 1)',
+                        backgroundColor: 'rgba(255, 159, 64, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Belegung (%)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Stunde'
+                            }
                         }
                     }
                 }
-            }
-        });
+            });
+        }
     </script>
 </body>
 {% endblock %}
