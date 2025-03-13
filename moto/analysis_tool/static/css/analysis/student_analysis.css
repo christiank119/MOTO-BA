@@ -111,7 +111,24 @@
     height: 40px;
     background-color: #f0f0f0;
     border-radius: 5px;
-    margin: 15px 0;
+    margin: 35px 0 15px 0; /* Increased top margin to accommodate markers */
+    overflow: visible; /* Allow markers to be visible outside the container */
+  }
+  
+  .comparison-scale {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+  }
+  
+  .scale-marker {
+    position: absolute;
+    top: -25px; /* Moved up slightly */
+    font-size: 0.8em;
+    color: #666;
+    transform: translateX(-50%);
   }
   
   .student-bar {
@@ -126,12 +143,14 @@
     font-weight: 600;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     transition: width 1s ease-in-out;
+    min-width: 60px; /* Ensure bar is always visible */
+    max-width: 100%; /* Ensure bar doesn't overflow container */
+    overflow: visible; /* Allow the text to be visible even if it overflows */
   }
   
   .average-marker {
     position: absolute;
-    top: -15px;
-    left: 100px;
+    top: -28px; /* Moved up to prevent cutoff */
     background-color: var(--font_color);
     color: white;
     width: 25px;
@@ -143,12 +162,15 @@
     font-weight: bold;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     cursor: help;
+    transform: translateX(-50%); /* Center on position */
+    z-index: 10; /* Ensure it appears above other elements */
   }
   
   /* Percentile Bar */
   .percentile-container {
     margin-top: 15px;
-    padding-bottom: 10px;
+    padding-bottom: 30px; /* Increased to accommodate the marker text */
+    position: relative; /* Ensure relative positioning for absolute children */
   }
   
   .percentile-bar {
@@ -156,6 +178,7 @@
     height: 15px;
     background-color: #f0f0f0;
     border-radius: 7px;
+    overflow: hidden; /* Ensures fill doesn't overflow */
   }
   
   .percentile-fill {
@@ -163,14 +186,17 @@
     background: linear-gradient(to right, #90caf9, #1976d2);
     border-radius: 7px;
     transition: width 1s ease-in-out;
+    max-width: 100%; /* Ensure fill doesn't overflow container */
   }
   
   .percentile-marker {
     position: absolute;
-    top: 20px;
+    top: 20px; /* Position below the percentile bar */
     right: 0;
     font-size: 0.9em;
     color: #666;
+    white-space: nowrap; /* Prevent wrapping */
+    z-index: 5; /* Ensure it's always visible */
   }
   
   /* Overview Explanation */
@@ -259,10 +285,6 @@
     .comparison-charts {
       flex-direction: column;
     }
-    
-    .average-marker {
-      left: 100px; /* Position for desktop */
-    }
   }
   
   /* Tablet Ansicht */
@@ -283,10 +305,6 @@
     
     .comparison-charts {
       flex-direction: column;
-    }
-    
-    .average-marker {
-      left: 80px; /* Position for tablet */
     }
   }
   
@@ -326,13 +344,6 @@
     .student-bar {
       font-size: 0.85em;
       padding: 0 10px;
-    }
-    
-    .average-marker {
-      left: 50px; /* Position for mobile */
-      width: 20px;
-      height: 20px;
-      font-size: 0.8em;
     }
     
     .percentile-marker {

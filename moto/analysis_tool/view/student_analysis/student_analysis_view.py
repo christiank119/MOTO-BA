@@ -65,6 +65,35 @@ def student_analysis_view(request, pupil_id):
     avg_total_ogs_time = StudentOverallAnalysis.objects.aggregate(avg=Avg('total_ogs_time'))
     school_avg['avg_total_ogs_time'] = avg_total_ogs_time['avg'] or 0
     
+    # Calculate average AG time percentage across all students
+    # This is a bit more complex as we need to calculate it for each student first
+    all_students = StudentOverallAnalysis.objects.all()
+    ag_time_percentages = []
+    
+    for student_analysis in all_students:
+        student_ag_analyses = StudentAGCategoryAnalysis.objects.filter(student=student_analysis.student)
+        student_total_ag_time = sum(analysis.time_spent for analysis in student_ag_analyses)
+        if student_analysis.total_ogs_time > 0:
+            student_percentage = student_total_ag_time / student_analysis.total_ogs_time * 100
+            ag_time_percentages.append(student_percentage)
+    
+    school_avg['avg_ag_time_percentage'] = sum(ag_time_percentages) / len(ag_time_percentages) if ag_time_percentages else 0
+    
+    # Get maximum values for proper scaling in visualizations
+    max_values = {}
+    
+    # Maximum AG visits per day (with 20% buffer for visualization)
+    max_ag_visits = StudentOverallAnalysis.objects.aggregate(max=Max('avg_ag_per_day'))
+    max_values['max_ag_per_day'] = (max_ag_visits['max'] or 0) * 1.2
+    
+    # Maximum session duration (with 20% buffer)
+    max_duration = StudentOverallAnalysis.objects.aggregate(max=Max('avg_continuous_ag_duration'))
+    max_values['max_continuous_duration'] = (max_duration['max'] or 0) * 1.2
+    
+    # Maximum OGS time (with 20% buffer)
+    max_ogs_time = StudentOverallAnalysis.objects.aggregate(max=Max('total_ogs_time'))
+    max_values['max_total_ogs_time'] = (max_ogs_time['max'] or 0) * 1.2
+    
     # Comparison percentiles (where does this student rank compared to others)
     percentiles = {}
     
@@ -81,6 +110,10 @@ def student_analysis_view(request, pupil_id):
     higher_ogs_time = StudentOverallAnalysis.objects.filter(total_ogs_time__gt=overall_analysis.total_ogs_time).count()
     percentiles['ogs_time'] = 100 - (higher_ogs_time / total_students * 100) if total_students > 0 else 50
     
+    # Calculate percentage of total OGS time spent in AGs
+    total_ag_time = sum(time_spent_data)
+    ag_time_percentage = (total_ag_time / overall_analysis.total_ogs_time * 100) if overall_analysis.total_ogs_time > 0 else 0
+    
     # Pass all data to the template
     context = {
         'nutzer': nutzer,
@@ -94,7 +127,9 @@ def student_analysis_view(request, pupil_id):
         'longest_continuous_category': longest_continuous_category,
         'longest_continuous_duration': longest_continuous_duration,
         'school_avg': school_avg,
+        'max_values': max_values,
         'percentiles': percentiles,
+        'ag_time_percentage': ag_time_percentage,
         'pupil': pupil_id,  # For back button
     }
     

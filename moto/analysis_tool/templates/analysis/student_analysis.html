@@ -71,6 +71,18 @@
                 </div>
                 
                 <div class="overview-card">
+                    <h3>AG-Zeit / OGS-Zeit</h3>
+                    <p class="value">{{ ag_time_percentage|floatformat:1 }}%</p>
+                    <p class="sub-value">
+                        {% if ag_time_percentage > school_avg.avg_ag_time_percentage %}
+                            <span class="positive">+{{ ag_time_percentage|subtract:school_avg.avg_ag_time_percentage|floatformat:1 }}% über Ø</span>
+                        {% else %}
+                            <span class="neutral">{{ ag_time_percentage|subtract:school_avg.avg_ag_time_percentage|floatformat:1 }}% unter Ø</span>
+                        {% endif %}
+                    </p>
+                </div>
+                
+                <div class="overview-card">
                     <h3>Lieblings-AG-Kategorie</h3>
                     <p class="value">
                         {% if overall_analysis.favourite_ag_kategorie %}
@@ -83,7 +95,7 @@
                 </div>
                 
                 <div class="overview-card">
-                    <h3>Längste kontinuierliche Zeit</h3>
+                    <h3>Ø Längste zusammenhängende Besuchszeit</h3>
                     <p class="value">{{ longest_continuous_duration|floatformat:1 }} Stunden</p>
                     <p class="sub-value">in {{ longest_continuous_category }}</p>
                 </div>
@@ -108,7 +120,7 @@
             </div>
             
             <div class="chart-container">
-                <h3>Durchschnittliche Sitzungsdauer nach AG-Kategorie</h3>
+                <h3>Durchschnittliche zusammenhängende Besuchszeit nach AG-Kategorie</h3>
                 <div class="chart-wrapper">
                     <canvas id="durationChart"></canvas>
                 </div>
@@ -133,8 +145,8 @@
                             <td>{{ overall_analysis.avg_continuous_ag_kategorie_duration|floatformat:1 }} Stunden</td>
                         </tr>
                         <tr>
-                            <td>Anteil der Zeit in angebotenen AGs</td>
-                            <td>{{ overall_analysis.offered_ag_time_percentage|floatformat:1 }}%</td>
+                            <td>Anteil der AG-Zeit an Gesamt-OGS-Zeit</td>
+                            <td>{{ ag_time_percentage|floatformat:1 }}%</td>
                         </tr>
                         <tr>
                             <td>Besuche bei Lieblings-AG-Kategorie</td>
@@ -186,48 +198,63 @@
                 <div class="chart-container">
                     <h3>AG-Besuche pro Tag im Vergleich</h3>
                     <div class="comparison-metric">
-                        <div class="student-bar" style="width: {{ overall_analysis.avg_ag_per_day|divide_by:school_avg.avg_ag_per_day|multiply:100|minimum:200|maximum:10|floatformat:0 }}%;">
+                        <div class="comparison-scale">
+                            <div class="scale-marker" style="left: 0%;">0</div>
+                            <div class="scale-marker" style="left: 50%;">{{ school_avg.avg_ag_per_day|floatformat:1 }}</div>
+                            <div class="scale-marker" style="left: 100%;">{{ max_values.max_ag_per_day|floatformat:1 }}</div>
+                        </div>
+                        <div class="student-bar" style="width: {{ overall_analysis.avg_ag_per_day|divide_by:max_values.max_ag_per_day|multiply:100|floatformat:0 }}%;">
                             {{ overall_analysis.avg_ag_per_day|floatformat:1 }}
                         </div>
-                        <div class="average-marker" title="Schuldurchschnitt: {{ school_avg.avg_ag_per_day|floatformat:1 }}">Ø</div>
+                        <div class="average-marker" style="left: {{ school_avg.avg_ag_per_day|divide_by:max_values.max_ag_per_day|multiply:100|floatformat:0 }}%;" title="Schuldurchschnitt: {{ school_avg.avg_ag_per_day|floatformat:1 }}">Ø</div>
                     </div>
                     <div class="percentile-container">
                         <div class="percentile-bar">
                             <div class="percentile-fill" style="width: {{ percentiles.ag_visits }}%;"></div>
-                            <div class="percentile-marker">{{ percentiles.ag_visits|floatformat:0 }}. Perzentil</div>
                         </div>
+                        <div class="percentile-marker">{{ percentiles.ag_visits|floatformat:0 }}. Perzentil</div>
                     </div>
                 </div>
                 
                 <div class="chart-container">
-                    <h3>Durchschnittliche Sitzungsdauer im Vergleich</h3>
+                    <h3>Durchschnittliche zusammenhängende Besuchszeit im Vergleich</h3>
                     <div class="comparison-metric">
-                        <div class="student-bar" style="width: {{ overall_analysis.avg_continuous_ag_duration|divide_by:school_avg.avg_continuous_duration|multiply:100|minimum:200|maximum:10|floatformat:0 }}%;">
+                        <div class="comparison-scale">
+                            <div class="scale-marker" style="left: 0%;">0</div>
+                            <div class="scale-marker" style="left: 50%;">{{ school_avg.avg_continuous_duration|floatformat:1 }}</div>
+                            <div class="scale-marker" style="left: 100%;">{{ max_values.max_continuous_duration|floatformat:1 }}</div>
+                        </div>
+                        <div class="student-bar" style="width: {{ overall_analysis.avg_continuous_ag_duration|divide_by:max_values.max_continuous_duration|multiply:100|floatformat:0 }}%;">
                             {{ overall_analysis.avg_continuous_ag_duration|floatformat:1 }} Std.
                         </div>
-                        <div class="average-marker" title="Schuldurchschnitt: {{ school_avg.avg_continuous_duration|floatformat:1 }} Std.">Ø</div>
+                        <div class="average-marker" style="left: {{ school_avg.avg_continuous_duration|divide_by:max_values.max_continuous_duration|multiply:100|floatformat:0 }}%;" title="Schuldurchschnitt: {{ school_avg.avg_continuous_duration|floatformat:1 }} Std.">Ø</div>
                     </div>
                     <div class="percentile-container">
                         <div class="percentile-bar">
                             <div class="percentile-fill" style="width: {{ percentiles.duration }}%;"></div>
-                            <div class="percentile-marker">{{ percentiles.duration|floatformat:0 }}. Perzentil</div>
                         </div>
+                        <div class="percentile-marker">{{ percentiles.duration|floatformat:0 }}. Perzentil</div>
                     </div>
                 </div>
                 
                 <div class="chart-container">
                     <h3>Gesamtzeit in OGS im Vergleich</h3>
                     <div class="comparison-metric">
-                        <div class="student-bar" style="width: {{ overall_analysis.total_ogs_time|divide_by:school_avg.avg_total_ogs_time|multiply:100|minimum:200|maximum:10|floatformat:0 }}%;">
+                        <div class="comparison-scale">
+                            <div class="scale-marker" style="left: 0%;">0</div>
+                            <div class="scale-marker" style="left: 50%;">{{ school_avg.avg_total_ogs_time|floatformat:1 }}</div>
+                            <div class="scale-marker" style="left: 100%;">{{ max_values.max_total_ogs_time|floatformat:1 }}</div>
+                        </div>
+                        <div class="student-bar" style="width: {{ overall_analysis.total_ogs_time|divide_by:max_values.max_total_ogs_time|multiply:100|floatformat:0 }}%;">
                             {{ overall_analysis.total_ogs_time|floatformat:1 }} Std.
                         </div>
-                        <div class="average-marker" title="Schuldurchschnitt: {{ school_avg.avg_total_ogs_time|floatformat:1 }} Std.">Ø</div>
+                        <div class="average-marker" style="left: {{ school_avg.avg_total_ogs_time|divide_by:max_values.max_total_ogs_time|multiply:100|floatformat:0 }}%;" title="Schuldurchschnitt: {{ school_avg.avg_total_ogs_time|floatformat:1 }} Std.">Ø</div>
                     </div>
                     <div class="percentile-container">
                         <div class="percentile-bar">
                             <div class="percentile-fill" style="width: {{ percentiles.ogs_time }}%;"></div>
-                            <div class="percentile-marker">{{ percentiles.ogs_time|floatformat:0 }}. Perzentil</div>
                         </div>
+                        <div class="percentile-marker">{{ percentiles.ogs_time|floatformat:0 }}. Perzentil</div>
                     </div>
                 </div>
             </div>
@@ -251,9 +278,9 @@
                     
                     <p>
                         {% if longest_continuous_duration > school_avg.avg_continuous_duration %}
-                        Die längste durchschnittliche kontinuierliche Zeit in einer AG-Kategorie ({{ longest_continuous_category }}) liegt mit {{ longest_continuous_duration|floatformat:1 }} Stunden über dem Schuldurchschnitt, was auf ein besonderes Interesse in diesem Bereich hindeutet.
+                        Die längste durchschnittliche zusammenhängende Besuchszeit in einer AG-Kategorie ({{ longest_continuous_category }}) liegt mit {{ longest_continuous_duration|floatformat:1 }} Stunden über dem Schuldurchschnitt, was auf ein besonderes Interesse in diesem Bereich hindeutet.
                         {% else %}
-                        Die längste durchschnittliche kontinuierliche Zeit in einer AG-Kategorie ({{ longest_continuous_category }}) liegt mit {{ longest_continuous_duration|floatformat:1 }} Stunden unter dem Schuldurchschnitt von {{ school_avg.avg_continuous_duration|floatformat:1 }} Stunden.
+                        Die längste durchschnittliche zusammenhängende Besuchszeit in einer AG-Kategorie ({{ longest_continuous_category }}) liegt mit {{ longest_continuous_duration|floatformat:1 }} Stunden unter dem Schuldurchschnitt von {{ school_avg.avg_continuous_duration|floatformat:1 }} Stunden.
                         {% endif %}
                     </p>
                 </div>
@@ -371,7 +398,7 @@
             data: {
                 labels: categoryLabels,
                 datasets: [{
-                    label: 'Durchschnittliche Dauer (h)',
+                    label: 'Durchschnittliche zusammenhängende Besuchszeit (h)',
                     data: avgDurationData,
                     backgroundColor: backgroundColors,
                     borderColor: backgroundColors.map(color => color.replace('0.7', '1')),
