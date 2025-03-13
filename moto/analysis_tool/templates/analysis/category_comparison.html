@@ -12,38 +12,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@1.2.0/dist/chartjs-chart-matrix.min.js"></script>
     <!-- D3.js for network visualizations -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
-    <style>
-        /* Additional CSS to ensure Bedeutung is centered */
-        .rules-table td:last-child {
-            text-align: center !important;
-            vertical-align: middle;
-        }
-        
-        .rules-table th:last-child {
-            text-align: center !important;
-        }
-        
-        /* Make the badges more visible */
-        .rules-table .significance-badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 0.85em;
-            color: white;
-            font-weight: 500;
-            min-width: 90px;
-            text-align: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-            margin: 0 auto;
-        }
-        
-        /* Force the text-align center */
-        table.rules-table td:last-child span {
-            text-align: center;
-            margin: 0 auto;
-            display: block;
-        }
-    </style>
 </head>
 
 <body>
@@ -413,7 +381,7 @@
                                     <th>Support</th>
                                     <th>Konfidenz</th>
                                     <th>Lift</th>
-                                    <th>Bedeutung</th>
+                                    <th style="text-align: center !important;">Bedeutung</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -424,10 +392,12 @@
                                         <td>{{ rule.support|floatformat:3 }}</td>
                                         <td>{{ rule.confidence|floatformat:3 }}</td>
                                         <td>{{ rule.lift|floatformat:3 }}</td>
-                                        <td>
-                                            <span class="significance-badge" style="background-color: {{ rule.color }};">
-                                                {{ rule.significance }}
-                                            </span>
+                                        <td style="text-align: center !important; vertical-align: middle !important;">
+                                            <div style="width: 100%; text-align: center; display: flex; justify-content: center;">
+                                                <span class="significance-badge" style="background-color: {{ rule.color }}; display: inline-block; margin: 0 auto;">
+                                                    {{ rule.significance }}
+                                                </span>
+                                            </div>
                                         </td>
                                     </tr>
                                 {% endfor %}
@@ -529,12 +499,9 @@
                     diagram.innerHTML = '<div class="no-visualization-message">Fehler bei der Visualisierung des Netzwerks.</div>';
                 }
             }
-            
-            // We're removing the peak hours visualization as requested
-            // There's no need to call setupPeakHoursChart() anymore
         }
         
-        // Fixed correlation heatmap function with better data checking
+        // Fixed correlation heatmap function - upper triangle only, properly sized
         function setupCorrelationHeatmap() {
             {% if correlation_data.has_data %}
                 const corrLabels = {{ correlation_data.categories|safe }};
@@ -550,106 +517,146 @@
                     return;
                 }
                 
-                const ctx = document.getElementById('correlationHeatmap');
-                if (!ctx) return;
+                // Get the container dimensions
+                const wrapper = document.getElementById('correlationHeatmapWrapper');
+                const canvas = document.getElementById('correlationHeatmap');
+                if (!canvas || !wrapper) return;
                 
-                // Prepare data for Chart.js matrix
-                const heatmapData = [];
+                const ctx = canvas.getContext('2d');
                 
-                for (let i = 0; i < corrLabels.length; i++) {
-                    for (let j = 0; j < corrLabels.length; j++) {
-                        if (i >= corrMatrix.length || j >= corrMatrix[i].length) continue;
+                // Calculate available space
+                const containerWidth = wrapper.clientWidth - 40; // Leave some padding
+                const containerHeight = 450; // Fixed height
+                
+                // Calculate cell size based on available space and number of labels
+                const numLabels = corrLabels.length;
+                const cellSize = Math.min(
+                    (containerWidth / (numLabels + 1)), // +1 for labels column
+                    (containerHeight / (numLabels + 1)) // +1 for labels row
+                );
+                
+                // Adjust canvas size
+                const canvasWidth = cellSize * (numLabels + 1); 
+                const canvasHeight = canvasWidth; // Keep it square
+                
+                canvas.width = canvasWidth;
+                canvas.height = canvasHeight;
+                canvas.style.margin = 'auto'; // Center it
+                
+                // Clear canvas
+                ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+                
+                // Calculate font size based on cell size
+                const fontSize = Math.max(10, Math.min(12, cellSize * 0.5));
+                
+                // Draw column headers (diagonal labels)
+                ctx.save();
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+                ctx.font = `${fontSize}px Arial`;
+                ctx.fillStyle = '#333';
+                
+                // Draw row labels and column headers
+                for (let i = 0; i < numLabels; i++) {
+                    // Column header (top)
+                    ctx.save();
+                    ctx.translate(cellSize * (i + 1) + cellSize/2, cellSize/2);
+                    ctx.rotate(-Math.PI/4); // Rotate text
+                    ctx.fillText(corrLabels[i], 0, 0);
+                    ctx.restore();
+                    
+                    // Row label (left side)
+                    ctx.save();
+                    ctx.textAlign = 'right';
+                    ctx.fillText(corrLabels[i], cellSize - 5, (i + 1) * cellSize + cellSize/2);
+                    ctx.restore();
+                }
+                
+                // Draw upper triangle of correlation matrix only
+                for (let i = 0; i < numLabels; i++) {
+                    for (let j = i; j < numLabels; j++) {
+                        // Skip the diagonal (self-correlations) if not needed
+                        if (i === j) continue;
                         
+                        // Get correlation value with safety checks
                         let value = 0;
-                        try {
-                            value = parseFloat(corrMatrix[i][j]) || 0;
-                        } catch (e) {
-                            console.warn(`Invalid value at [${i}][${j}]:`, corrMatrix[i][j]);
+                        if (i < corrMatrix.length && j < corrMatrix[i].length) {
+                            value = corrMatrix[i][j];
+                            if (isNaN(value)) value = 0;
                         }
                         
-                        heatmapData.push({
-                            x: j,
-                            y: i,
-                            v: value
-                        });
+                        // Calculate color
+                        let fillColor;
+                        if (value >= 0) {
+                            // Blue for positive correlations
+                            const intensity = Math.floor(255 * (1 - Math.min(1, value)));
+                            fillColor = `rgb(${intensity}, ${intensity}, 255)`;
+                        } else {
+                            // Red for negative correlations
+                            const intensity = Math.floor(255 * Math.min(1, Math.abs(value)));
+                            fillColor = `rgb(255, ${255 - intensity}, ${255 - intensity})`;
+                        }
+                        
+                        // Draw cell background - only upper triangle
+                        ctx.fillStyle = fillColor;
+                        ctx.fillRect((j + 1) * cellSize, (i + 1) * cellSize, cellSize, cellSize);
+                        
+                        // Draw cell border
+                        ctx.strokeStyle = '#fff';
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect((j + 1) * cellSize, (i + 1) * cellSize, cellSize, cellSize);
+                        
+                        // Draw value text
+                        ctx.fillStyle = Math.abs(value) > 0.5 ? '#fff' : '#000';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.font = `${fontSize}px Arial`;
+                        ctx.fillText(
+                            value.toFixed(2), 
+                            (j + 1) * cellSize + cellSize/2, 
+                            (i + 1) * cellSize + cellSize/2
+                        );
                     }
                 }
                 
-                // Create heatmap
-                new Chart(ctx, {
-                    type: 'matrix',
-                    data: {
-                        datasets: [{
-                            label: 'Korrelation',
-                            data: heatmapData,
-                            backgroundColor: function(context) {
-                                const value = context.dataset.data[context.dataIndex].v;
-                                
-                                // Blue for positive, red for negative correlations
-                                if (value >= 0) {
-                                    const intensity = Math.floor(255 * (1 - value));
-                                    return `rgba(${intensity}, ${intensity}, 255, 0.8)`;
-                                } else {
-                                    const intensity = Math.floor(255 * Math.abs(value));
-                                    return `rgba(255, ${255 - intensity}, ${255 - intensity}, 0.8)`;
-                                }
-                            },
-                            borderWidth: 1,
-                            borderColor: 'white',
-                            width: ({ chart }) => (chart.chartArea || {}).width / corrLabels.length - 1,
-                            height: ({ chart }) => (chart.chartArea || {}).height / corrLabels.length - 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            tooltip: {
-                                callbacks: {
-                                    title: function() {
-                                        return '';
-                                    },
-                                    label: function(context) {
-                                        const i = context.dataset.data[context.dataIndex].y;
-                                        const j = context.dataset.data[context.dataIndex].x;
-                                        const value = context.dataset.data[context.dataIndex].v;
-                                        if (i < corrLabels.length && j < corrLabels.length) {
-                                            return `${corrLabels[i]} - ${corrLabels[j]}: ${value.toFixed(2)}`;
-                                        }
-                                        return `Korrelation: ${value.toFixed(2)}`;
-                                    }
-                                }
-                            },
-                            legend: {
-                                display: false
-                            }
-                        },
-                        scales: {
-                            x: {
-                                type: 'category',
-                                labels: corrLabels,
-                                ticks: {
-                                    maxRotation: 90,
-                                    minRotation: 45
-                                },
-                                title: {
-                                    display: true,
-                                    text: 'AG-Kategorie'
-                                }
-                            },
-                            y: {
-                                type: 'category',
-                                labels: corrLabels,
-                                offset: true,
-                                reverse: true,
-                                title: {
-                                    display: true,
-                                    text: 'AG-Kategorie'
-                                }
-                            }
-                        }
-                    }
-                });
+                // Add a legend
+                const legendX = 10;
+                const legendY = canvasHeight - 60;
+                ctx.fillStyle = '#333';
+                ctx.textAlign = 'left';
+                ctx.font = `${fontSize}px Arial`;
+                ctx.fillText('Stärke der Korrelation:', legendX, legendY);
+                
+                // Draw legend colors
+                const legendWidth = 30;
+                const legendHeight = 15;
+                const legendGap = 5;
+                
+                // Strong positive correlation
+                ctx.fillStyle = 'rgb(0, 0, 255)';
+                ctx.fillRect(legendX, legendY + 15, legendWidth, legendHeight);
+                ctx.fillStyle = '#fff';
+                ctx.fillText('1.0', legendX + legendWidth/2 - 8, legendY + 15 + legendHeight/2 + 4);
+                ctx.fillStyle = '#333';
+                ctx.fillText('Stark positiv', legendX + legendWidth + legendGap, legendY + 15 + legendHeight/2 + 4);
+                
+                // Medium positive correlation
+                ctx.fillStyle = 'rgb(125, 125, 255)';
+                ctx.fillRect(legendX + 120, legendY + 15, legendWidth, legendHeight);
+                ctx.fillStyle = '#000';
+                ctx.fillText('0.5', legendX + 120 + legendWidth/2 - 8, legendY + 15 + legendHeight/2 + 4);
+                ctx.fillStyle = '#333';
+                ctx.fillText('Mittel positiv', legendX + 120 + legendWidth + legendGap, legendY + 15 + legendHeight/2 + 4);
+                
+                // No correlation
+                ctx.fillStyle = 'rgb(255, 255, 255)';
+                ctx.strokeStyle = '#ccc';
+                ctx.strokeRect(legendX + 240, legendY + 15, legendWidth, legendHeight);
+                ctx.fillRect(legendX + 240, legendY + 15, legendWidth, legendHeight);
+                ctx.fillStyle = '#000';
+                ctx.fillText('0.0', legendX + 240 + legendWidth/2 - 8, legendY + 15 + legendHeight/2 + 4);
+                ctx.fillStyle = '#333';
+                ctx.fillText('Keine Korrelation', legendX + 240 + legendWidth + legendGap, legendY + 15 + legendHeight/2 + 4);
             {% else %}
                 // Create empty visualization with message
                 const wrapper = document.getElementById('correlationHeatmapWrapper');
@@ -680,8 +687,8 @@
                 
                 // Count connections per category
                 for (const link of links) {
-                    const source = link.source;
-                    const target = link.target;
+                    const source = typeof link.source === 'object' ? link.source.id : link.source;
+                    const target = typeof link.target === 'object' ? link.target.id : link.target;
                     
                     categoryConnections[source] = (categoryConnections[source] || 0) + 1;
                     categoryConnections[target] = (categoryConnections[target] || 0) + 1;
@@ -707,11 +714,15 @@
                     
                     // Fill in actual connections
                     for (const link of links) {
-                        if (link.source === category && sortedCategories.includes(link.target)) {
-                            connections[link.target] = link.value;
+                        const source = typeof link.source === 'object' ? link.source.id : link.source;
+                        const target = typeof link.target === 'object' ? link.target.id : link.target;
+                        const value = typeof link.value === 'number' ? link.value : 0;
+                        
+                        if (source === category && sortedCategories.includes(target)) {
+                            connections[target] = value;
                         }
-                        if (link.target === category && sortedCategories.includes(link.source)) {
-                            connections[link.source] = link.value;
+                        if (target === category && sortedCategories.includes(source)) {
+                            connections[source] = value;
                         }
                     }
                     
@@ -852,7 +863,7 @@
             {% endif %}
         }
         
-        // Simple transition diagram using styled HTML - with error fixes
+        // Fixed transition diagram using styled HTML
         function setupTransitionDiagram() {
             {% if transition_data.has_data %}
                 const topTransitions = {{ transition_data.top_transitions|safe }};
@@ -882,13 +893,15 @@
                     
                     const from = transition[0] || "Unbekannt";
                     const to = transition[1] || "Unbekannt";
+                    
+                    // Make sure value is a number
                     let value = 0;
                     try {
-                        // Make sure value is a number
-                        value = parseFloat(transition[2]) || 0;
+                        value = parseFloat(String(transition[2])) || 0;
                     } catch (e) {
                         console.warn("Invalid transition value:", transition[2]);
                     }
+                    
                     const significance = transition.length > 3 ? transition[3] : "gelegentlich";
                     const color = transition.length > 4 ? transition[4] : "#388e3c";
                     
@@ -917,7 +930,7 @@
             {% endif %}
         }
         
-        // Simple network diagram using styled HTML - with error fixes
+        // Fixed network diagram using styled HTML
         function setupNetworkDiagram() {
             {% if cooccurrence_data.has_data %}
                 const topCooccurrences = {{ cooccurrence_data.top_cooccurrences|safe }};
@@ -948,13 +961,15 @@
                     
                     const cat1 = cooc[0] || "Unbekannt";
                     const cat2 = cooc[1] || "Unbekannt";
+                    
+                    // Make sure value is a number
                     let value = 0;
                     try {
-                        // Make sure value is a number
-                        value = parseFloat(cooc[2]) || 0;
+                        value = parseFloat(String(cooc[2])) || 0;
                     } catch (e) {
                         console.warn("Invalid cooccurrence value:", cooc[2]);
                     }
+                    
                     const significance = cooc.length > 3 ? cooc[3] : "gelegentlich";
                     const color = cooc.length > 4 ? cooc[4] : "#388e3c";
                     
@@ -965,7 +980,7 @@
                         <div class="network-pair">
                             <div class="network-node">${cat1}</div>
                             <div class="network-connection" style="height: ${thickness}px; background-color: ${color};">
-                                <span class="connection-value" style="background-color: ${color};">${value.toFixed(0)}</span>
+                                <span class="connection-value" style="background-color: ${color};">${Math.round(value)}</span>
                             </div>
                             <div class="network-node">${cat2}</div>
                         </div>

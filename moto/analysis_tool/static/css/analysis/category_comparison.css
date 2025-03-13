@@ -256,15 +256,38 @@
 }
 
 /* Center the Bedeutung column */
-.rules-table td:last-child,
-.rules-table th:last-child {
+.bedeutung-column {
     text-align: center !important;
 }
 
-/* Fixed center alignment for all cells in the last column */
-.rules-table td:last-child {
-    text-align: center !important;
+/* Fixed center alignment for all cells in the Bedeutung column */
+td.bedeutung-column {
     vertical-align: middle;
+    text-align: center !important;
+}
+
+.rules-table td:last-child,
+.rules-table th:last-child {
+    text-align: center !important;
+    vertical-align: middle !important;
+}
+
+.rules-table td:last-child .significance-badge {
+    margin: 0 auto !important;
+    display: inline-block;
+}
+
+/* Force center alignment of the significance badge */
+.rules-table td:last-child {
+    position: relative;
+}
+
+.rules-table td:last-child > div {
+    width: 100%;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 /* Make the badges more visible */
@@ -279,13 +302,6 @@
     text-align: center;
     box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     margin: 0 auto;
-}
-
-/* Force the text-align center */
-table.rules-table td:last-child span {
-    text-align: center;
-    margin: 0 auto;
-    display: block;
 }
 
 .rules-table th {
@@ -641,103 +657,22 @@ table.rules-table td:last-child span {
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
-/* Peak hours visualization */
-.peak-hours-container {
-    position: relative;
-    padding: 80px 20px 40px;
-    margin-top: 20px;
-    min-height: 150px;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    border: 1px solid #eee;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
-}
-
-.timeline {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    border-top: 2px solid #ccc;
-    position: relative;
-}
-
-.hour-marker {
-    position: absolute;
-    transform: translateX(-50%);
-    top: -25px;
-    font-size: 0.9em;
-    color: #333;
-    font-weight: 500;
-}
-
-.hour-marker::after {
-    content: '';
-    position: absolute;
-    top: 25px;
-    left: 50%;
-    height: 8px;
-    width: 2px;
-    background-color: #ccc;
-    transform: translateX(-50%);
-}
-
-.hour-marker:nth-child(1) { left: 0%; }
-.hour-marker:nth-child(2) { left: 10%; }
-.hour-marker:nth-child(3) { left: 20%; }
-.hour-marker:nth-child(4) { left: 30%; }
-.hour-marker:nth-child(5) { left: 40%; }
-.hour-marker:nth-child(6) { left: 50%; }
-.hour-marker:nth-child(7) { left: 60%; }
-.hour-marker:nth-child(8) { left: 70%; }
-.hour-marker:nth-child(9) { left: 80%; }
-.hour-marker:nth-child(10) { left: 90%; }
-.hour-marker:nth-child(11) { left: 100%; }
-
-.peak-indicator {
-    position: absolute;
-    top: 15px;
-    transform: translateX(-50%);
-}
-
-.peak-dot {
-    border-radius: 50%;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid white;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    z-index: 10;
-}
-
-.peak-label {
-    position: absolute;
-    bottom: -25px;
-    left: 50%;
-    transform: translateX(-50%);
-    white-space: nowrap;
-    font-size: 0.85em;
-    font-weight: 600;
-    background-color: white;
-    padding: 2px 6px;
-    border-radius: 10px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
 /* Correlation heatmap specific */
 #correlationHeatmapWrapper {
     width: 100%;
-    height: 100%;
+    height: 450px;
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    margin: 20px auto;
+    overflow: visible;
 }
 
-/* Fix for correlation matrix coloring - ensure text is visible */
-#correlationHeatmap .matrix-element text {
-    fill: white !important; /* Ensure text is visible on colored backgrounds */
-    font-weight: bold;
-    text-shadow: 0 0 2px rgba(0,0,0,0.5);
+#correlationHeatmap {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
 }
 
 /* Add visual separation between tabs */
@@ -782,6 +717,10 @@ table.rules-table td:last-child span {
     
     .insight-card {
         min-width: calc(50% - 10px);
+    }
+    
+    #correlationHeatmapWrapper {
+        height: 400px;
     }
 }
 
@@ -840,5 +779,9 @@ table.rules-table td:last-child span {
     .nav-buttons {
         flex-direction: column;
         gap: 10px;
+    }
+    
+    #correlationHeatmapWrapper {
+        height: 350px;
     }
 }
