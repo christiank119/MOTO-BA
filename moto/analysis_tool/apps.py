@@ -15,7 +15,7 @@ class AnalysisToolConfig(AppConfig):
 
         register_functions2()
         #signals registrieren
-        import analysis_tool.signals
+        from analysis_tool.signals import create_ag_historie, create_student_buffer
         import analysis_tool.extensions
 
 def register_functions2():
@@ -69,6 +69,13 @@ def register_functions2():
         show_in_nav=True
     )
 
+    register_view(
+        view_func=views.ogs_optimization_view,
+        url_name="ogs_optimization",
+        label="OGS Optimierung",
+        conditions=[],
+        show_in_nav=True
+    )
 
     register_view(views.save_polygon, "heatmap_save", "Save", conditions=[], show_in_nav=False)
     register_view(views.get_room_data, "heatmap_get_room_data", "Save", conditions=[], show_in_nav=False)

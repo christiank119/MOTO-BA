@@ -11,4 +11,5 @@ urlpatterns = [
     path('student/<int:pupil_id>/', views.student_analysis_view, name='student_analysis'),
     path('category/<int:category_id>/', views.category_analysis_view, name='category_analysis_list'),
     path('category-comparison/', views.category_comparison_view, name='category_comparison'),
+    path('ogs-optimization/', views.ogs_optimization_view, name='ogs_optimization'),
 ]
