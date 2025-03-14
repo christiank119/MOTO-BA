@@ -8,6 +8,7 @@ from analysis_tool.view.student_analysis.student_analysis_view import student_an
 from analysis_tool.view.category_analysis.category_analysis_view import category_analysis_view
 from analysis_tool.view.category_comparison.category_comparison_view import category_comparison_view
 from analysis_tool.view.ogs_optimization.ogs_optimization_view import ogs_optimization_view
+from analysis_tool.view.category_selection.category_selection_view import category_selection_view
 
 def test(request):
 

@@ -31,6 +31,7 @@ class UnregisterTabletView(APIView):
         for aufenthalt in offene_aufenthalte:
             aufenthalt.zeitraum.endzeit = datetime.now().time()
             aufenthalt.zeitraum.save()
+            aufenthalt.save()
         
         # Zeitraum der Raumbelegung beenden
         zeitraum = raum_belegung.zeitraum

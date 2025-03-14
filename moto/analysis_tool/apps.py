@@ -11,7 +11,7 @@ class AnalysisToolConfig(AppConfig):
     name = 'analysis_tool'
 
     def ready(self):
-        register_functions()
+        #register_functions()
 
         register_functions2()
         #signals registrieren
@@ -73,6 +73,14 @@ def register_functions2():
         view_func=views.ogs_optimization_view,
         url_name="ogs_optimization",
         label="OGS Optimierung",
+        conditions=[],
+        show_in_nav=True
+    )
+
+    register_view(
+        view_func=views.category_selection_view,
+        url_name="category_selection",
+        label="AG Kategorie Analyse Auswahl",
         conditions=[],
         show_in_nav=True
     )

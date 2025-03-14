@@ -12,4 +12,5 @@ urlpatterns = [
     path('category/<int:category_id>/', views.category_analysis_view, name='category_analysis_list'),
     path('category-comparison/', views.category_comparison_view, name='category_comparison'),
     path('ogs-optimization/', views.ogs_optimization_view, name='ogs_optimization'),
+    path('category_selection/', views.category_selection_view, name='category_selection'),
 ]

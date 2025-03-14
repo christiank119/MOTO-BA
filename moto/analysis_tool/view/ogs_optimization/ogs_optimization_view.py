@@ -18,7 +18,6 @@ from analysis_tool.models import (
 from analysis_tool.utils.compute_ag_category_metrics import (
     compute_correlation_matrix,
     compute_relative_time_ratios,
-    perform_regression_analysis,
     perform_cluster_analysis
 )
 from analysis_tool.utils.compute_room_metrics import (
@@ -40,8 +39,8 @@ from analysis_tool.utils.advanced_analytics import (
 def ogs_optimization_view(request):
     """
     View to display comprehensive OGS optimization analytics with:
-    1. Historical analysis of OGS utilization
-    2. Current room planning optimization recommendations
+    1. Current room planning optimization recommendations
+    2. Historical analysis of OGS utilization
     3. Predictive analytics for varying student numbers
     """
     # Get current date for context
@@ -237,73 +236,80 @@ def get_room_optimization():
     }
     
     try:
-        # Get current room usage from active Raum_Belegung
-        current_belegungen = Raum_Belegung.objects.filter(
-            zeitraum__endzeit__isnull=True  # Currently active
-        ).select_related('raum', 'ag', 'zeitraum')
-        
-        if not current_belegungen.exists():
-            # Fallback to all Raum_Belegung if no active ones
-            current_belegungen = Raum_Belegung.objects.all().select_related('raum', 'ag', 'zeitraum')
-            
-        # Initialize room usage data
+        # Get all rooms
         rooms = Raum.objects.all()
+        
+        # Initialize room usage data
         room_usage = {}
         
         for room in rooms:
+            # Current students in the room based on active Aufenthalt objects
+            current_students = Aufenthalt.objects.filter(
+                raum_id=room,
+                zeitraum__endzeit__isnull=True  # Students currently in the room
+            ).count()
+            
+            # Current room assignments (max is 1)
+            current_belegung = Raum_Belegung.objects.filter(
+                raum=room,
+                zeitraum__endzeit__isnull=True  # Currently active
+            ).first()
+            
+            # Historical utilization
+            historical_utilization = get_room_utilization(room.id).get('avg_utilization_percentage', 0)
+            
+            # Calculate current utilization percentage based on capacity
+            current_utilization = (current_students / room.kapazitaet * 100) if room.kapazitaet > 0 else 0
+            
+            ag_name = "Keine aktuelle AG" 
+            if current_belegung and hasattr(current_belegung, 'ag') and current_belegung.ag:
+                ag_name = current_belegung.ag.name
+                
             room_usage[room.id] = {
                 'room': room,
-                'current_belegungen': [],
-                'historical_utilization': 0,
-                'capacity_alert': False,
-                'recommendation': None
+                'current_belegung': 1 if current_belegung else 0,
+                'current_utilization': current_utilization,
+                'current_students': current_students,
+                'historical_utilization': historical_utilization,
+                'current_ag': ag_name,
+                'capacity_alert': current_utilization > 85 or historical_utilization > 85
             }
             
-        # Add current belegungen to room data
-        for belegung in current_belegungen:
-            if belegung.raum_id in room_usage:
-                room_usage[belegung.raum_id]['current_belegungen'].append(belegung)
-        
-        # Get historical utilization for each room
-        for room_id, data in room_usage.items():
-            try:
-                utilization = get_room_utilization(room_id)
-                data['historical_utilization'] = utilization.get('avg_utilization_percentage', 0)
-                
-                # Get capacity analysis
-                capacity_time = compute_room_capacity_time_analysis(room_id)
-                data['full_time_percentage'] = capacity_time.get('full_percentage', 0)
-                
-                # Check for capacity alerts
-                if data['full_time_percentage'] > 80 and data['current_belegungen']:
-                    data['capacity_alert'] = True
-                    results['capacity_alerts'].append({
-                        'room_number': data['room'].raum_nr,
-                        'alert_type': 'overcapacity',
-                        'utilization': round(data['historical_utilization'], 1),
-                        'full_percentage': round(data['full_time_percentage'], 1),
-                        'current_ags': [b.ag.name if hasattr(b, 'ag') and b.ag else "Unbekannt" for b in data['current_belegungen']]
-                    })
-            except Exception as e:
-                print(f"Error analyzing room {room_id}: {e}")
+            # Check for capacity alerts
+            if room_usage[room.id]['capacity_alert']:
+                results['capacity_alerts'].append({
+                    'room_number': room.raum_nr,
+                    'alert_type': 'overcapacity',
+                    'current_utilization': round(current_utilization, 1),
+                    'historical_utilization': round(historical_utilization, 1),
+                    'current_ag': ag_name
+                })
+            
+        # Get all current AG belegungen
+        current_belegungen = Raum_Belegung.objects.filter(
+            zeitraum__endzeit__isnull=True
+        ).select_related('raum', 'ag', 'zeitraum')
         
         # Check for scheduling conflicts (overlapping times for high-demand AGs)
         scheduling_conflicts = []
         high_demand_ags = []
         
-        # Identify high demand AGs from historical data
-        for ag_historie in AGHistorie.objects.filter(fully_utilized_percentage__gt=80):
-            if ag_historie.ag_name not in high_demand_ags:
-                high_demand_ags.append(ag_historie.ag_name)
+        # Identify high demand AG categories from historical data
+        high_demand_categories = set()
+        for category in AGKategorie.objects.all():
+            # Check if this category has high historical utilization
+            category_analyses = StudentAGCategoryAnalysis.objects.filter(ag_kategorie=category)
+            if category_analyses.exists() and category_analyses.count() > 5:  # Only consider categories with sufficient data
+                high_demand_categories.add(category.id)
         
-        # Check current belegungen for conflicts between high demand AGs
+        # Check current belegungen for conflicts between high demand categories
         belegungen_by_time = {}
         for belegung in current_belegungen:
-            if not belegung.ag:
+            if not belegung.ag or not belegung.ag.ag_kategorie:
                 continue
                 
-            if belegung.ag.name in high_demand_ags:
-                key = f"{belegung.zeitraum.startzeit}-{belegung.zeitraum.endzeit}"
+            if belegung.ag.ag_kategorie.id in high_demand_categories:
+                key = f"{belegung.zeitraum.startzeit}"
                 if key not in belegungen_by_time:
                     belegungen_by_time[key] = []
                 belegungen_by_time[key].append(belegung)
@@ -313,7 +319,7 @@ def get_room_optimization():
             if len(belegungen_list) > 1:
                 scheduling_conflicts.append({
                     'time': time_key,
-                    'ags': [b.ag.name for b in belegungen_list if b.ag],
+                    'ags': [b.ag.ag_kategorie.name for b in belegungen_list if b.ag and b.ag.ag_kategorie],
                     'rooms': [b.raum.raum_nr for b in belegungen_list if b.raum]
                 })
                 
@@ -321,54 +327,57 @@ def get_room_optimization():
         formatted_room_usage = []
         for room_id, data in room_usage.items():
             room = data['room']
-            belegungen = data['current_belegungen']
             
             usage_data = {
                 'room_number': room.raum_nr,
                 'capacity': room.kapazitaet,
-                'current_assignment': len(belegungen),
-                'current_ags': [b.ag.name if hasattr(b, 'ag') and b.ag else "Unbekannt" for b in belegungen],
+                'current_assignment': data['current_belegung'],
+                'current_ag': data['current_ag'],
+                'current_students': data['current_students'],
+                'current_utilization': round(data['current_utilization'], 1),
                 'historical_utilization': round(data['historical_utilization'], 1),
                 'capacity_alert': data['capacity_alert']
             }
             
             formatted_room_usage.append(usage_data)
         
-        # Sort by current assignment (descending)
-        formatted_room_usage.sort(key=lambda x: (x['current_assignment'], x['historical_utilization']), reverse=True)
+        # Sort by current utilization (descending)
+        formatted_room_usage.sort(key=lambda x: x['current_utilization'], reverse=True)
         
         # Generate room recommendations
         room_recommendations = []
         
         # 1. Identify underutilized rooms with capacity
-        underutilized_rooms = [r for r in formatted_room_usage if r['historical_utilization'] < 50 and r['current_assignment'] < 2]
+        underutilized_rooms = [r for r in formatted_room_usage if r['historical_utilization'] < 40 and r['current_utilization'] < 30]
         
         # 2. Identify overutilized rooms
-        overutilized_rooms = [r for r in formatted_room_usage if r['historical_utilization'] > 80 or r['capacity_alert']]
+        overutilized_rooms = [r for r in formatted_room_usage if r['historical_utilization'] > 75 or r['current_utilization'] > 85]
         
         # 3. Generate recommendations
         if underutilized_rooms and overutilized_rooms:
             for over_room in overutilized_rooms:
                 for under_room in underutilized_rooms:
-                    if not under_room['current_ags'] or len(under_room['current_ags']) < 2:
+                    if under_room['current_assignment'] == 0:  # Only suggest empty rooms
                         room_recommendations.append({
                             'type': 'reassignment',
                             'source_room': over_room['room_number'],
                             'target_room': under_room['room_number'],
-                            'source_utilization': over_room['historical_utilization'],
-                            'target_utilization': under_room['historical_utilization'],
+                            'source_historical_utilization': over_room['historical_utilization'],
+                            'source_current_utilization': over_room['current_utilization'],
+                            'target_historical_utilization': under_room['historical_utilization'],
+                            'target_current_utilization': under_room['current_utilization'],
                             'reason': f"Raum {over_room['room_number']} ist überbelegt, während Raum {under_room['room_number']} unterbelegt ist."
                         })
                         break
         
-        # Add recommendations for scheduling conflicts
+        # Add recommendations for scheduling conflicts - focusing only on AG categories, not specific AGs
         for conflict in scheduling_conflicts:
             room_recommendations.append({
                 'type': 'scheduling',
-                'conflicting_ags': conflict['ags'],
+                'conflicting_categories': conflict['ags'],  # These are already category names
                 'time': conflict['time'],
                 'rooms': conflict['rooms'],
-                'reason': f"Die stark nachgefragten AGs {', '.join(conflict['ags'])} finden zeitgleich statt."
+                'reason': f"Die stark nachgefragten AG-Kategorien {', '.join(conflict['ags'])} finden zeitgleich statt."
             })
         
         # Populate results
@@ -385,12 +394,11 @@ def get_room_optimization():
 
 def get_predictive_analytics():
     """
-    Uses regression and clustering to predict outcomes with varying student numbers.
+    Uses clustering to predict outcomes with varying student numbers.
     """
     results = {
         'student_growth_scenarios': [],
         'interest_shift_scenarios': [],
-        'capacity_predictions': {},
         'has_data': False
     }
     
@@ -485,27 +493,15 @@ def get_predictive_analytics():
                 'current_percentage': round(current_percentage, 1),
                 'new_percentage': round(new_percentage, 1),
                 'capacity_impact': round(capacity_impact, 1),
-                'new_ags_needed': new_ags_needed
+                'new_ags_needed': new_ags_needed,
+                'explanation': (
+                    f"Wenn das Interesse an der Kategorie '{category['name']}' um 50% steigt, "
+                    f"würde der Anteil von {round(current_percentage, 1)}% auf {round(new_percentage, 1)}% wachsen. "
+                    f"Dies würde zu einem Mehrbedarf von etwa {round(capacity_impact, 1)} Plätzen führen, "
+                    f"was ungefähr {new_ags_needed} neue AGs in dieser Kategorie erfordern würde, "
+                    f"um eine gute Auslastung beizubehalten."
+                )
             })
-            
-        # Calculate capacity predictions using regression when available
-        capacity_predictions = {}
-        try:
-            # Try to run regression for the most popular category
-            if top_categories:
-                top_category = top_categories[0]['name']
-                regression_results = perform_regression_analysis(top_category, "Sport" if top_category != "Sport" else "Ernährung")
-                
-                if regression_results:
-                    capacity_predictions = {
-                        'category': top_category,
-                        'coefficient': round(regression_results['coefficient'], 3),
-                        'intercept': round(regression_results['intercept'], 3),
-                        'score': round(regression_results['score'], 3),
-                        'interpretation': get_regression_interpretation(regression_results)
-                    }
-        except Exception as e:
-            print(f"Error running regression analysis: {e}")
             
         # Try clustering analysis
         cluster_results = {}
@@ -549,7 +545,6 @@ def get_predictive_analytics():
         # Populate results
         results['student_growth_scenarios'] = growth_scenarios
         results['interest_shift_scenarios'] = interest_shift_scenarios
-        results['capacity_predictions'] = capacity_predictions
         results['cluster_results'] = cluster_results
         results['has_data'] = True
         
@@ -559,32 +554,105 @@ def get_predictive_analytics():
     return results
 
 
-def get_regression_interpretation(regression_results):
-    """Helper to interpret regression results in plain language"""
-    coefficient = regression_results['coefficient']
-    intercept = regression_results['intercept']
-    score = regression_results['score']
+def get_improved_capacity_metrics():
+    """
+    Calculates capacity metrics based on AG offering times versus student demand.
+    This provides a more accurate view of capacity than just summing room capacities.
+    """
+    results = {
+        'available_student_hours': 0,
+        'required_student_hours': 0,
+        'capacity_percentage': 0,
+        'capacity_status': 'unknown'
+    }
     
-    if score < 0.3:
-        strength = "schwache"
-    elif score < 0.6:
-        strength = "mäßige"
-    else:
-        strength = "starke"
+    try:
+        # Get all AG offerings with time slots (Raum_Belegung)
+        from django.db.models import F, ExpressionWrapper, FloatField
+        from django.db.models.functions import ExtractHour, ExtractMinute
+        from main_app.models import Raum_Belegung, Schueler
+        from analysis_tool.models import StudentOverallAnalysis
+        import datetime
         
-    if coefficient > 0:
-        direction = "positive"
-        explanation = f"Wenn die Zeit in der einen Kategorie um 1 Stunde steigt, steigt die Zeit in der anderen Kategorie um {coefficient:.2f} Stunden."
-    else:
-        direction = "negative"
-        explanation = f"Wenn die Zeit in der einen Kategorie um 1 Stunde steigt, sinkt die Zeit in der anderen Kategorie um {abs(coefficient):.2f} Stunden."
+        # Calculate available capacity (supply side)
+        # For each AG session, calculate duration × room capacity
+        belegungen = Raum_Belegung.objects.filter(zeitraum__isnull=False, raum__isnull=False)
         
-    return f"Es besteht eine {strength} {direction} Korrelation. {explanation} Diese Beziehung erklärt {score*100:.1f}% der Varianz."
-
-
+        # Sum up the available student-hours
+        total_available_hours = 0
+        daily_available_hours = 0
+        
+        for belegung in belegungen:
+            if not belegung.zeitraum.startzeit or not belegung.zeitraum.endzeit:
+                continue
+                
+            # Calculate duration in hours
+            start_time = belegung.zeitraum.startzeit
+            end_time = belegung.zeitraum.endzeit
+            
+            # Convert to datetime objects for calculation
+            start_dt = datetime.datetime.combine(datetime.date.today(), start_time)
+            end_dt = datetime.datetime.combine(datetime.date.today(), end_time)
+            
+            # Handle case where end time is on the next day
+            if end_dt < start_dt:
+                end_dt += datetime.timedelta(days=1)
+                
+            duration_hours = (end_dt - start_dt).total_seconds() / 3600
+            
+            # Multiply by room capacity
+            if belegung.raum and hasattr(belegung.raum, 'kapazitaet'):
+                room_capacity = belegung.raum.kapazitaet
+            else:
+                room_capacity = 0
+                
+            session_capacity = duration_hours * room_capacity
+            total_available_hours += session_capacity
+            
+            # For daily average, consider typical weekly pattern
+            # This is an approximation - ideally we'd analyze actual scheduling data
+            daily_available_hours += session_capacity / 5  # Assuming 5-day week
+            
+        # Calculate required capacity (demand side)
+        # Get number of students
+        student_count = Schueler.objects.count()
+        
+        # Get average OGS time per student
+        avg_ogs_time = StudentOverallAnalysis.objects.aggregate(
+            avg_time=Avg('total_ogs_time')
+        )['avg_time'] or 0
+        
+        # Total student-hours needed
+        total_required_hours = student_count * avg_ogs_time
+        daily_required_hours = total_required_hours / 5  # Assuming 5-day week
+        
+        # Calculate capacity percentage
+        if daily_available_hours > 0:
+            capacity_percentage = (daily_required_hours / daily_available_hours) * 100
+        else:
+            capacity_percentage = 0
+            
+        # Determine capacity status
+        capacity_status = get_capacity_status(capacity_percentage)
+        
+        # Populate results
+        results = {
+            'available_student_hours': round(daily_available_hours, 1),
+            'required_student_hours': round(daily_required_hours, 1),
+            'capacity_percentage': round(capacity_percentage, 1),
+            'capacity_status': capacity_status
+        }
+        
+    except Exception as e:
+        print(f"Error calculating improved capacity metrics: {e}")
+        
+    return results
+    
+# Update the capacity recommendations function to use the improved metrics
 def get_capacity_recommendations():
     """
     Provides specific capacity optimization recommendations.
+    Uses improved capacity calculation method.
     """
     results = {
         'capacity_summary': {},
@@ -600,17 +668,13 @@ def get_capacity_recommendations():
         if not rooms.exists():
             return results
             
-        total_capacity = sum(room.kapazitaet for room in rooms)
-        average_capacity = total_capacity / rooms.count() if rooms.count() > 0 else 0
+        # Get improved capacity metrics
+        improved_metrics = get_improved_capacity_metrics()
         
         # Count current students
         current_students = Schueler.objects.count()
         
-        # Calculate overall capacity utilization
-        capacity_ratio = current_students / total_capacity if total_capacity > 0 else 0
-        capacity_percentage = capacity_ratio * 100
-        
-        # Get average attendance percentage
+        # Calculate average attendance percentage
         avg_attendance = Schueler.objects.filter(angemeldet=True).count() / current_students if current_students > 0 else 0
         avg_attendance_percentage = avg_attendance * 100
         
@@ -633,8 +697,8 @@ def get_capacity_recommendations():
                     'percentage': round(capacity_time.get('full_percentage', 0), 1),
                     'recommendation': f"Raum {room.raum_nr} ist zu {round(capacity_time.get('full_percentage', 0), 1)}% der Zeit voll ausgelastet. Erwägen Sie, die Kapazität zu erhöhen oder Aktivitäten zu verlagern."
                 })
-            elif utilization.get('avg_utilization_percentage', 0) < 30 and room.kapazitaet > average_capacity:
-                # Large room is underutilized
+            elif utilization.get('avg_utilization_percentage', 0) < 30:
+                # Room is underutilized
                 room_capacity_issues.append({
                     'room_number': room.raum_nr,
                     'capacity': room.kapazitaet,
@@ -646,22 +710,25 @@ def get_capacity_recommendations():
         # Generate specific capacity recommendations
         specific_recommendations = []
         
-        # 1. Overall capacity recommendation
+        # 1. Overall capacity recommendation based on improved metrics
+        capacity_percentage = improved_metrics['capacity_percentage']
         if capacity_percentage > 80:
             specific_recommendations.append({
                 'type': 'overall',
                 'severity': 'high',
                 'title': 'Gesamtkapazität erhöhen',
-                'recommendation': f"Die Gesamtkapazität ist zu {round(capacity_percentage, 1)}% ausgelastet. Neue Räume oder erweiterte Kapazitäten sind zu empfehlen."
+                'recommendation': f"Die Gesamtkapazität ist zu {round(capacity_percentage, 1)}% ausgelastet. Mehr AGs oder erweiterte Zeitslots könnten nötig sein."
             })
         elif capacity_percentage < 40:
             specific_recommendations.append({
                 'type': 'overall',
                 'severity': 'medium',
                 'title': 'Gesamtkapazität optimieren',
-                'recommendation': f"Die Gesamtkapazität ist nur zu {round(capacity_percentage, 1)}% ausgelastet. Prüfen Sie, ob einige Räume anderweitig genutzt werden können."
+                'recommendation': f"Die Gesamtkapazität ist nur zu {round(capacity_percentage, 1)}% ausgelastet. Prüfen Sie, ob das AG-Angebot reduziert werden kann."
             })
             
+        # Rest of the function remains the same...
+        
         # 2. Recommendations for overcapacity rooms
         overcapacity_rooms = [r for r in room_capacity_issues if r['issue_type'] == 'overcapacity']
         if overcapacity_rooms:
@@ -673,48 +740,15 @@ def get_capacity_recommendations():
                     'recommendation': room_data['recommendation']
                 })
                 
-        # 3. Recommendations for group balance
-        # Check if there are imbalances in group sizes
-        groups = Gruppe.objects.annotate(schueler_count=Count('schueler'))
-        if groups.exists():
-            avg_group_size = groups.aggregate(avg=Avg('schueler_count'))['avg'] or 0
-            
-            # Find groups that are much larger than average
-            large_groups = groups.filter(schueler_count__gt=avg_group_size * 1.5)
-            
-            if large_groups.exists():
-                group_names = [group.name for group in large_groups[:3]]  # Top 3
-                specific_recommendations.append({
-                    'type': 'group',
-                    'severity': 'medium',
-                    'title': 'Gruppengrößen ausbalancieren',
-                    'recommendation': f"Die Gruppen {', '.join(group_names)} sind deutlich größer als der Durchschnitt. Erwägen Sie eine ausgewogenere Verteilung."
-                })
-                
-        # 4. Time distribution recommendation
-        # Are there AGs that could benefit from redistributed time slots?
-        ag_histories = AGHistorie.objects.filter(utilization_percentage__gt=90)
-        if ag_histories.exists():
-            high_utilization_ags = set()
-            for history in ag_histories:
-                high_utilization_ags.add(history.ag_name)
-                
-            if high_utilization_ags:
-                specific_recommendations.append({
-                    'type': 'time',
-                    'severity': 'medium',
-                    'title': 'Zeitslots für beliebte AGs erweitern',
-                    'recommendation': f"Die AGs {', '.join(list(high_utilization_ags)[:3])} sind stark ausgelastet. Zusätzliche Zeitslots könnten die Auslastung verbessern."
-                })
-                
-        # Capacity summary
+        # Capacity summary using improved metrics
         capacity_summary = {
             'total_rooms': rooms.count(),
-            'total_capacity': total_capacity,
+            'available_student_hours': improved_metrics['available_student_hours'],
+            'required_student_hours': improved_metrics['required_student_hours'],
             'current_students': current_students,
-            'capacity_percentage': round(capacity_percentage, 1),
+            'capacity_percentage': improved_metrics['capacity_percentage'],
             'avg_attendance_percentage': round(avg_attendance_percentage, 1),
-            'capacity_status': get_capacity_status(capacity_percentage)
+            'capacity_status': improved_metrics['capacity_status']
         }
         
         # Populate results
@@ -815,7 +849,8 @@ def get_category_recommendations():
         category_status.sort(key=lambda x: x['percentage'], reverse=True)
         
         # Generate expansion recommendations for popular categories
-        popular_categories = [c for c in category_status if c['status'] == 'überlastet' or c['status'] == 'beliebt']
+        # Only recommend expansion for categories with utilization above 50%
+        popular_categories = [c for c in category_status if c['utilization'] > 50]
         
         expansion_recommendations = []
         for category in popular_categories:
@@ -823,12 +858,12 @@ def get_category_recommendations():
                 'category': category['name'],
                 'reason': "Hohe Nachfrage",
                 'utilization': category['utilization'],
-                'recommendation': f"Erweitern Sie das Angebot in der Kategorie {category['name']} aufgrund der hohen Nachfrage."
+                'recommendation': f"Erweitern Sie das Angebot in der Kategorie {category['name']} aufgrund der hohen Nachfrage (Auslastung: {category['utilization']}%)."
             })
             
         # Check for potentially missing or underrepresented categories
         # Compare with common categories found in other OGS
-        common_categories = ["Sport", "Ernährung", "Kunst", "Musik", "Naturwissenschaften", "Technik", "Sprachen", "Theater"]
+        common_categories = list(AGKategorie.objects.values_list('name', flat=True))
         
         existing_categories = {c['name'].lower() for c in category_status}
         missing_categories = []
@@ -887,7 +922,7 @@ def get_category_recommendations():
 
 def get_category_status(percentage, utilization):
     """Helper to determine category status based on metrics"""
-    if percentage > 25 and utilization > 85:
+    if percentage > 25 and utilization > 75:
         return "überlastet"
     elif percentage > 25:
         return "beliebt"
