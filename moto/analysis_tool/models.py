@@ -20,9 +20,7 @@ class AGHistorie(models.Model):
         return f"{self.ag_name} in Raum {self.raum} ({self.zeitraum_start.strftime('%Y-%m-%d %H:%M')} - {self.zeitraum_end.strftime('%Y-%m-%d %H:%M')})"
 
 class ExtendedAGKategorie(AGKategorie):
-    """
-    Proxy-Modell, das zusätzliche Analyse-Methoden zur AGKategorie bietet.
-    """
+
     class Meta:
         proxy = True
 
@@ -30,7 +28,6 @@ class ExtendedAGKategorie(AGKategorie):
 
         qs = AGHistorie.objects.filter(ag_kategorie=self)
         
-        # Aggregiere die Gesamtwerte aus den Feldern total_available_time und actual_usage_time
         agg_data = qs.aggregate(
             total_available=Sum('total_available_time'),
             actual_usage=Sum('actual_usage_time')
@@ -38,7 +35,6 @@ class ExtendedAGKategorie(AGKategorie):
         total_available = agg_data.get('total_available') or 0.0
         actual_usage = agg_data.get('actual_usage') or 0.0
         
-        # Für jeden Eintrag: Berechne die voll ausgelastete Zeit = total_available_time * (fully_utilized_percentage / 100)
         qs = qs.annotate(
             fully_utilized_time=ExpressionWrapper(
                 F('total_available_time') * F('fully_utilized_percentage') / 100.0,
@@ -47,12 +43,10 @@ class ExtendedAGKategorie(AGKategorie):
         )
         fully_data = qs.aggregate(total_fully_utilized=Sum('fully_utilized_time'))
         total_fully_utilized_time = fully_data.get('total_fully_utilized') or 0.0
-        
-        # Berechne die prozentualen Anteile
+
         utilization_percentage = (actual_usage / total_available * 100) if total_available > 0 else 0
         fully_utilized_overall_percentage = (total_fully_utilized_time / total_available * 100) if total_available > 0 else 0
-        
-        # Zähle, in wie vielen AGHistorie-Einträgen die AG voll ausgelastet war (fully_utilized_percentage == 100)
+
         fully_utilized_count = qs.filter(fully_utilized_percentage=100).count()
         
         return {
@@ -100,7 +94,6 @@ class StudentAGCategoryAnalysis(models.Model):
         default=0.0,
         help_text="Prozentsatz der in AGs dieser Kategorie verbrachten Zeit, bei denen ein Angebot vorlag"
     )
-    # relative Zeit zur gesamt verbrachten zeit in der Schule
 
     class Meta:
         unique_together = ('student', 'ag_kategorie')
@@ -163,9 +156,7 @@ class StudentOverallAnalysis(models.Model):
     
 
 class RaumPlan(models.Model):
-    """
-    Modell zum Speichern eines Raumplans als Bild.
-    """
+
     title = models.CharField(max_length=100)
     image = models.ImageField(upload_to='raumplaene/')
     width = models.PositiveIntegerField(help_text="Breite des Bildes in Pixel")
@@ -175,12 +166,9 @@ class RaumPlan(models.Model):
         return self.title
 
 class RaumPolygon(models.Model):
-    """
-    Modell zur Speicherung der Polygon-Koordinaten, verknüpft mit einem Raum und Raumplan.
-    """
+
     raum = models.OneToOneField(Raum, on_delete=models.CASCADE)
     raumplan = models.ForeignKey(RaumPlan, on_delete=models.CASCADE)
-    # Speichert eine Liste von Koordinaten z. B. [{'x': 10, 'y': 20}, {'x': 150, 'y': 20}, ...]
     polygon = models.JSONField(help_text="Liste von Koordinaten z. B. [{'x': 10, 'y': 20}, ...]")
 
     def __str__(self):
