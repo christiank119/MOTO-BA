@@ -5,7 +5,7 @@
 This extension requires a working MOTO installation.
 
 ```bash
-pip install moto-analysis-tool
+pip install git+https://github.com/christiank119/MOTO-BA.git@analysis_tool_package
 ```
 
 ## Quick Setup
