@@ -1,0 +1,778 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load analysis_filters %}
+{% block content %}
+
+<head>
+    <title>OGS Optimierung</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/analysis/ogs_optimization.css' %}"/>
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+</head>
+
+<body>
+    <div class="block_container">
+        <div class="header_container_back_help">
+            <button class="back" onclick="window.location.href = '/master_web/';"> 
+                <span class="arrow"><i class="arrow_left"></i></span> 
+                <span class="backtext">Zurück</span>
+            </button>
+
+            <a class="question" href="#popup1">Hilfe</a>
+
+            <div id="popup1" class="popup">
+                <div class="popup2">
+                    <h3>Was muss ich in diesem Anzeigefenster beachten?</h3>
+
+                    <div class="content">
+                        <p>In dieser Ansicht werden <strong>Empfehlungen zur Optimierung der OGS</strong> basierend auf historischen Daten, aktueller Raumbelegung und Vorhersagen angezeigt. Sie können potenzielle Probleme identifizieren und Verbesserungen planen.</p>
+                    </div>
+
+                    <a class="close" href="#">&times;</a>
+                </div>
+            </div>
+        </div>
+
+        <h1 class="heading_2">OGS Optimierung und Empfehlungen</h1>
+        <p class="subheading">Analyse und Empfehlungen basierend auf historischen und aktuellen OGS-Daten</p>
+        
+        <!-- Tabs für verschiedene Ansichten -->
+        <div class="tabs">
+            <div class="tab active" data-tab="current">Aktuelle Auslastung</div>
+            <div class="tab" data-tab="historical">Historische Trends</div>
+            <div class="tab" data-tab="predictive">Prognosen</div>
+            <div class="tab" data-tab="recommendations">Empfehlungen</div>
+        </div>
+        
+        <!-- Current Utilization Tab -->
+        <div id="tab-current" class="tab-content">
+            <div class="chart-container">
+                <h3>Aktuelle Raumauslastung</h3>
+                <div class="chart-description">
+                    <p>Diese Ansicht zeigt die aktuelle und historische Auslastung der Räume in der OGS.</p>
+                </div>
+                
+                {% if room_optimization.has_data %}
+                    <div class="room-utilization-grid">
+                        {% for room in room_optimization.current_room_usage %}
+                            <div class="room-card {% if room.capacity_alert %}room-alert{% endif %}">
+                                <div class="room-header">
+                                    <h4>Raum {{ room.room_number }}</h4>
+                                    <span class="room-capacity">Kapazität: {{ room.capacity }}</span>
+                                </div>
+                                <div class="room-body">
+                                    <div class="room-utilization">
+                                        <span class="util-label">Aktuelle Auslastung:</span>
+                                        <div class="util-bar">
+                                            <div class="util-fill" style="width: {{ room.current_utilization }}%"></div>
+                                        </div>
+                                        <span class="util-value">{{ room.current_utilization }}%</span>
+                                    </div>
+                                    <div class="room-utilization">
+                                        <span class="util-label">Historische Auslastung:</span>
+                                        <div class="util-bar">
+                                            <div class="util-fill" style="width: {{ room.historical_utilization }}%"></div>
+                                        </div>
+                                        <span class="util-value">{{ room.historical_utilization }}%</span>
+                                    </div>
+                                    <div class="room-assignments">
+                                        <span class="assign-label">Status:</span>
+                                        <span class="assign-value">{% if room.current_assignment == 1 %}Aktuell belegt{% else %}Verfügbar{% endif %}</span>
+                                    </div>
+                                    <div class="room-assignments">
+                                        <span class="assign-label">Aktuelle Schüler:</span>
+                                        <span class="assign-value">{{ room.current_students }}/{{ room.capacity }}</span>
+                                    </div>
+                                    {% if room.current_assignment > 0 %}
+                                        <div class="room-ags">
+                                            <span class="ag-badge">{{ room.current_ag }}</span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <!-- Removed Kapazitätswarnung banner, keeping only the red highlighting via room-alert class -->
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    {% if room_optimization.scheduling_conflicts %}
+                        <div class="alerts-container">
+                            <h3>Terminplanungskonflikte</h3>
+                            <div class="alert-list">
+                                {% for conflict in room_optimization.scheduling_conflicts %}
+                                    <div class="alert-item">
+                                        <div class="alert-title">Konflikt um {{ conflict.time }}</div>
+                                        <div class="alert-details">
+                                            <p><strong>AG-Kategorien:</strong> {{ conflict.ags|join:", " }}</p>
+                                            <p><strong>Räume:</strong> {{ conflict.rooms|join:", " }}</p>
+                                            <p>Diese beliebten AG-Kategorien finden zur gleichen Zeit statt, was Schüler zwingt, zwischen ihnen zu wählen.</p>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="no-data-message">
+                        <p>Für diese Analyse sind derzeit keine Raumauslastungsdaten verfügbar.</p>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="chart-container">
+                <h3>AG-Kategorien Auslastung</h3>
+                <div class="chart-description">
+                    <p>Übersicht über die aktuelle Auslastung der verschiedenen AG-Kategorien.</p>
+                </div>
+                
+                {% if category_recommendations.has_data %}
+                    <div class="category-table-container">
+                        <table class="category-table">
+                            <thead>
+                                <tr>
+                                    <th>Kategorie</th>
+                                    <th>Schüler</th>
+                                    <th>Zeit (h)</th>
+                                    <th>Anteil (%)</th>
+                                    <th>Sitzungsdauer (min)</th>
+                                    <th>Auslastung (%)</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for category in category_recommendations.category_status %}
+                                    <tr class="status-{{ category.status }}">
+                                        <td>{{ category.name }}</td>
+                                        <td>{{ category.student_count }}</td>
+                                        <td>{{ category.time_spent }}</td>
+                                        <td>{{ category.percentage }}%</td>
+                                        <td>{{ category.avg_session_duration }}</td>
+                                        <td>{{ category.utilization }}%</td>
+                                        <td><span class="status-badge status-{{ category.status }}">{{ category.status }}</span></td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="no-data-message">
+                        <p>Für diese Analyse sind derzeit keine Kategoriedaten verfügbar.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Historical Trends Tab -->
+        <div id="tab-historical" class="tab-content" style="display: none;">
+            <div class="chart-container">
+                <h3>Auslastungsverlauf</h3>
+                <div class="chart-description">
+                    <p>Diese Grafik zeigt die historische Auslastung der OGS über Zeit.</p>
+                </div>
+                
+                {% if historical_data.has_data %}
+                    <div class="chart-wrapper">
+                        <canvas id="utilizationTrendChart"></canvas>
+                    </div>
+                    
+                    <div class="trend-insights">
+                        <div class="trend-insight-card">
+                            <h4>Trend-Analyse</h4>
+                            <p>
+                                {% if historical_data.utilization_trend.trend > 2 %}
+                                    Die Auslastung zeigt einen deutlichen Aufwärtstrend von {{ historical_data.utilization_trend.trend }}% pro Monat. 
+                                    Bei gleichbleibender Entwicklung könnte die Kapazitätsgrenze bald erreicht werden.
+                                {% elif historical_data.utilization_trend.trend > 0 %}
+                                    Die Auslastung zeigt einen leichten Aufwärtstrend von {{ historical_data.utilization_trend.trend }}% pro Monat.
+                                    Die aktuelle Kapazität scheint mittelfristig ausreichend zu sein.
+                                {% elif historical_data.utilization_trend.trend < -2 %}
+                                    Die Auslastung zeigt einen deutlichen Abwärtstrend von {{ historical_data.utilization_trend.trend|multiply:-1 }}% pro Monat.
+                                    Dies deutet auf eine sinkende Nachfrage oder andere strukturelle Änderungen hin.
+                                {% elif historical_data.utilization_trend.trend < 0 %}
+                                    Die Auslastung zeigt einen leichten Abwärtstrend von {{ historical_data.utilization_trend.trend|multiply:-1 }}% pro Monat.
+                                    Die Gesamtauslastung bleibt in einem angemessenen Bereich.
+                                {% else %}
+                                    Die Auslastung zeigt einen stabilen Trend ohne signifikante Veränderungen.
+                                    Die aktuelle Kapazitätsplanung erscheint angemessen.
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="no-data-message">
+                        <p>Für diese Analyse sind nicht genügend historische Daten vorhanden.</p>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="chart-container">
+                <h3>Häufigkeitsverteilung nach Stunde</h3>
+                <div class="chart-description">
+                    <p>Diese Grafik zeigt die Verteilung der AG-Nutzung nach Tageszeit.</p>
+                </div>
+                
+                {% if historical_data.has_data and historical_data.peak_hours.hours %}
+                    <div class="chart-wrapper">
+                        <canvas id="hourlyDistributionChart"></canvas>
+                    </div>
+                    
+                    <div class="peak-hours-insight">
+                        <h4>Spitzenzeiten</h4>
+                        <div class="peak-hours-badges">
+                            {% for hour in historical_data.peak_hours.hours %}
+                                <div class="peak-hour-large">
+                                    <span class="hour">{{ hour }}:00</span>
+                                    <span class="hour-label">Uhr</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <p>Die OGS hat zu diesen Zeiten die höchste Auslastung. Planen Sie Ressourcen und Angebote entsprechend.</p>
+                    </div>
+                {% else %}
+                    <div class="no-data-message">
+                        <p>Für diese Analyse sind nicht genügend Daten zur Stundenverteilung vorhanden.</p>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="chart-container">
+                <h3>Raumhistorie</h3>
+                <div class="chart-description">
+                    <p>Übersicht der historischen Raum-Auslastung und -nutzung.</p>
+                </div>
+                
+                {% if historical_data.has_data and historical_data.overutilized_rooms %}
+                    <div class="room-stats-container">
+                        <div class="room-stats-group">
+                            <h4>Überausgelastete Räume</h4>
+                            <div class="room-stats-cards">
+                                {% for room in historical_data.overutilized_rooms %}
+                                    <div class="room-stat-card overutilized">
+                                        <div class="room-stat-title">Raum {{ room.number }}</div>
+                                        <div class="room-stat-value">{{ room.utilization }}%</div>
+                                        <div class="room-stat-label">Auslastung</div>
+                                        <div class="room-stat-capacity">Kapazität: {{ room.capacity }}</div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div class="room-stats-group">
+                            <h4>Unterausgelastete Räume</h4>
+                            <div class="room-stats-cards">
+                                {% for room in historical_data.underutilized_rooms %}
+                                    <div class="room-stat-card underutilized">
+                                        <div class="room-stat-title">Raum {{ room.number }}</div>
+                                        <div class="room-stat-value">{{ room.utilization }}%</div>
+                                        <div class="room-stat-label">Auslastung</div>
+                                        <div class="room-stat-capacity">Kapazität: {{ room.capacity }}</div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="no-data-message">
+                        <p>Für diese Analyse sind nicht genügend Raumhistoriendaten vorhanden.</p>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="chart-container">
+                <h3>Kategorie-Popularität</h3>
+                <div class="chart-description">
+                    <p>Übersicht der beliebtesten AG-Kategorien nach Zeit und Schülerzahl.</p>
+                </div>
+                
+                {% if historical_data.has_data and historical_data.category_popularity %}
+                    <div class="chart-wrapper">
+                        <canvas id="categoryPopularityChart"></canvas>
+                    </div>
+                {% else %}
+                    <div class="no-data-message">
+                        <p>Für diese Analyse sind nicht genügend Kategoriendaten vorhanden.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Predictive Tab -->
+        <div id="tab-predictive" class="tab-content" style="display: none;">
+            <div class="chart-container">
+                <h3>Prognose bei steigenden Schülerzahlen</h3>
+                <div class="chart-description">
+                    <p>Diese Analyse zeigt, wie sich verschiedene Wachstumsszenarien auf die OGS-Kapazität auswirken könnten.</p>
+                </div>
+                
+                {% if predictive_data.has_data and predictive_data.student_growth_scenarios %}
+                    <div class="scenarios-grid">
+                        {% for scenario in predictive_data.student_growth_scenarios %}
+                            <div class="scenario-card">
+                                <div class="scenario-header">
+                                    <h4>{{ scenario.growth_percent }}% Wachstum</h4>
+                                </div>
+                                <div class="scenario-content">
+                                    <div class="scenario-stat-group">
+                                        <div class="scenario-stat">
+                                            <span class="stat-label">Neue Schülerzahl</span>
+                                            <span class="stat-value">{{ scenario.new_student_count }}</span>
+                                        </div>
+                                        <div class="scenario-stat">
+                                            <span class="stat-label">Prognostizierte Auslastung</span>
+                                            <span class="stat-value">{{ scenario.predicted_utilization }}%</span>
+                                        </div>
+                                    </div>
+                                    <div class="scenario-capacity-bar">
+                                        <div class="scenario-capacity-fill" style="width: {{ scenario.predicted_utilization }}%"></div>
+                                    </div>
+                                    <div class="scenario-status status-{{ scenario.capacity_status }}">
+                                        Kapazität: {{ scenario.capacity_status }}
+                                    </div>
+                                    <div class="scenario-recommendation">
+                                        {% if scenario.additional_capacity_needed > 0 %}
+                                            <p>Zusätzlicher Kapazitätsbedarf: ca. {{ scenario.additional_capacity_needed }} Plätze</p>
+                                        {% else %}
+                                            <p>Keine zusätzliche Kapazität erforderlich.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="no-data-message">
+                        <p>Für diese Analyse sind nicht genügend Daten vorhanden.</p>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="chart-container">
+                <h3>Prognose bei Interessenverschiebungen</h3>
+                <div class="chart-description">
+                    <p>Diese Analyse zeigt, wie sich eine Verschiebung des Interesses zu bestimmten AG-Kategorien auswirken könnte. Die Berechnung erfolgt auf Basis historischer Daten und simuliert, was passieren würde, wenn das Interesse an einer bestimmten Kategorie um 50% zunimmt.</p>
+                </div>
+                
+                {% if predictive_data.has_data and predictive_data.interest_shift_scenarios %}
+                    <div class="interest-shift-container">
+                        {% for scenario in predictive_data.interest_shift_scenarios %}
+                            <div class="interest-shift-card">
+                                <div class="interest-shift-header">
+                                    <h4>Verstärktes Interesse an "{{ scenario.category_name }}"</h4>
+                                </div>
+                                <div class="interest-shift-content">
+                                    <div class="interest-shift-stats">
+                                        <div class="stat-group">
+                                            <div class="stat-label">Aktueller Anteil</div>
+                                            <div class="stat-current">{{ scenario.current_percentage }}%</div>
+                                        </div>
+                                        <div class="stat-arrow">→</div>
+                                        <div class="stat-group">
+                                            <div class="stat-label">Prognostizierter Anteil</div>
+                                            <div class="stat-future">{{ scenario.new_percentage }}%</div>
+                                        </div>
+                                    </div>
+                                    <div class="interest-shift-impact">
+                                        <p><strong>Erklärung:</strong> {{ scenario.explanation }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="no-data-message">
+                        <p>Für diese Analyse sind nicht genügend Daten vorhanden.</p>
+                    </div>
+                {% endif %}
+            </div>
+            
+            {% if predictive_data.has_data and predictive_data.cluster_results.clusters %}
+                <div class="chart-container">
+                    <h3>Schülergruppen-Analyse</h3>
+                    <div class="chart-description">
+                        <p>Clusteranalyse der Schüler basierend auf ihren AG-Präferenzen.</p>
+                    </div>
+                    
+                    <div class="clusters-container">
+                        <div class="clusters-summary">
+                            <p>Die Analyse hat {{ predictive_data.cluster_results.total_clusters }} Hauptgruppen von Schülern mit ähnlichen Interessen identifiziert:</p>
+                        </div>
+                        <div class="clusters-grid">
+                            {% for cluster in predictive_data.cluster_results.clusters %}
+                                <div class="cluster-card cluster-{{ cluster.id }}">
+                                    <div class="cluster-header">
+                                        <h4>Gruppe {{ cluster.id|add:1 }}</h4>
+                                        <span class="cluster-percentage">{{ cluster.percentage }}%</span>
+                                    </div>
+                                    <div class="cluster-content">
+                                        <div class="cluster-stat">
+                                            <span class="stat-label">Schüler</span>
+                                            <span class="stat-value">{{ cluster.student_count }}</span>
+                                        </div>
+                                        <div class="cluster-categories">
+                                            <div class="categories-label">Bevorzugte AG-Kategorien:</div>
+                                            <div class="categories-list">
+                                                {% for category in cluster.top_categories %}
+                                                    <div class="cluster-category-item">{{ category }}</div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Recommendations Tab -->
+        <div id="tab-recommendations" class="tab-content" style="display: none;">
+            <div class="recommendations-section">
+                <h3>Kapazitätsempfehlungen</h3>
+                
+                {% if capacity_recommendations.has_data and capacity_recommendations.specific_recommendations %}
+                    <div class="recommendations-list">
+                        {% for rec in capacity_recommendations.specific_recommendations %}
+                            <div class="recommendation-card severity-{{ rec.severity }}">
+                                <div class="recommendation-header">
+                                    <h4>{{ rec.title }}</h4>
+                                    <span class="recommendation-priority priority-{{ rec.severity }}">{{ rec.severity }}</span>
+                                </div>
+                                <div class="recommendation-body">
+                                    <p>{{ rec.recommendation }}</p>
+                                </div>
+                                <div class="recommendation-type-badge type-{{ rec.type }}">{{ rec.type }}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="no-data-message">
+                        <p>Keine Kapazitätsempfehlungen verfügbar.</p>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="recommendations-section">
+                <h3>Raumzuweisungsempfehlungen</h3>
+                
+                {% if room_optimization.has_data and room_optimization.room_recommendations %}
+                    <div class="recommendations-list">
+                        {% for rec in room_optimization.room_recommendations %}
+                            <div class="recommendation-card severity-medium">
+                                <div class="recommendation-header">
+                                    <h4>
+                                        {% if rec.type == 'reassignment' %}
+                                            Raumoptimierung: {{ rec.source_room }} → {{ rec.target_room }}
+                                        {% elif rec.type == 'scheduling' %}
+                                            Terminplanung für {{ rec.conflicting_categories|join:", " }}
+                                        {% endif %}
+                                    </h4>
+                                    <span class="recommendation-priority priority-medium">mittel</span>
+                                </div>
+                                <div class="recommendation-body">
+                                    <p>{{ rec.reason }}</p>
+                                    {% if rec.type == 'reassignment' %}
+                                        <div class="reassignment-stats">
+                                            <div class="room-stat">
+                                                <span class="label">Quellraum (historische Auslastung):</span>
+                                                <span class="value">{{ rec.source_historical_utilization }}%</span>
+                                            </div>
+                                            <div class="room-stat">
+                                                <span class="label">Quellraum (aktuelle Auslastung):</span>
+                                                <span class="value">{{ rec.source_current_utilization }}%</span>
+                                            </div>
+                                            <div class="room-stat">
+                                                <span class="label">Zielraum (historische Auslastung):</span>
+                                                <span class="value">{{ rec.target_historical_utilization }}%</span>
+                                            </div>
+                                            <div class="room-stat">
+                                                <span class="label">Zielraum (aktuelle Auslastung):</span>
+                                                <span class="value">{{ rec.target_current_utilization }}%</span>
+                                            </div>
+                                        </div>
+                                    {% elif rec.type == 'scheduling' %}
+                                        <div class="scheduling-details">
+                                            <span class="label">Konfliktzeit:</span>
+                                            <span class="value">{{ rec.time }}</span>
+                                            <span class="label">Betroffene Räume:</span>
+                                            <span class="value">{{ rec.rooms|join:", " }}</span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="recommendation-type-badge type-{{ rec.type }}">{{ rec.type }}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="no-data-message">
+                        <p>Keine Raumzuweisungsempfehlungen verfügbar.</p>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="recommendations-section">
+                <h3>AG-Kategorieempfehlungen</h3>
+                
+                {% if category_recommendations.has_data %}
+                    {% if category_recommendations.expansion_recommendations %}
+                        <div class="recommendation-group">
+                            <h4>Empfehlungen zur Erweiterung von Kategorien</h4>
+                            <div class="recommendations-list">
+                                {% for rec in category_recommendations.expansion_recommendations %}
+                                    <div class="recommendation-card severity-medium">
+                                        <div class="recommendation-header">
+                                            <h4>Kategorie {{ rec.category }} erweitern</h4>
+                                            <span class="recommendation-priority priority-medium">mittel</span>
+                                        </div>
+                                        <div class="recommendation-body">
+                                            <p>{{ rec.recommendation }}</p>
+                                            <div class="category-stats">
+                                                <span class="label">Aktuelle Auslastung:</span>
+                                                <span class="value">{{ rec.utilization }}%</span>
+                                                <span class="label">Grund:</span>
+                                                <span class="value">{{ rec.reason }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="recommendation-type-badge type-expansion">Erweiterung</div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    {% if category_recommendations.new_category_recommendations %}
+                        <div class="recommendation-group">
+                            <h4>Empfehlungen für neue Kategorien</h4>
+                            <div class="recommendations-list">
+                                {% for rec in category_recommendations.new_category_recommendations %}
+                                    <div class="recommendation-card severity-low">
+                                        <div class="recommendation-header">
+                                            <h4>Neue Kategorie: {{ rec.category }}</h4>
+                                            <span class="recommendation-priority priority-low">niedrig</span>
+                                        </div>
+                                        <div class="recommendation-body">
+                                            <p>{{ rec.recommendation }}</p>
+                                            <div class="category-reason">
+                                                <span class="label">Grund:</span>
+                                                <span class="value">{{ rec.reason }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="recommendation-type-badge type-new">Neu</div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    {% if category_recommendations.diversification_recommendations %}
+                        <div class="recommendation-group">
+                            <h4>Empfehlungen zur Diversifizierung</h4>
+                            <div class="recommendations-list">
+                                {% for rec in category_recommendations.diversification_recommendations %}
+                                    <div class="recommendation-card severity-low">
+                                        <div class="recommendation-header">
+                                            <h4>Angebot diversifizieren</h4>
+                                            <span class="recommendation-priority priority-low">niedrig</span>
+                                        </div>
+                                        <div class="recommendation-body">
+                                            <p>{{ rec.recommendation }}</p>
+                                            <div class="category-stats">
+                                                <span class="label">Betroffene Kategorien:</span>
+                                                <span class="value">{{ rec.categories|join:", " }}</span>
+                                                <span class="label">Aktueller Anteil:</span>
+                                                <span class="value">{{ rec.percentage }}%</span>
+                                            </div>
+                                        </div>
+                                        <div class="recommendation-type-badge type-diversification">Diversifizierung</div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="no-data-message">
+                        <p>Keine AG-Kategorieempfehlungen verfügbar.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab-Wechsel
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.style.display = 'none';
+                });
+                document.getElementById('tab-' + this.dataset.tab).style.display = 'block';
+            });
+        });
+        
+        // Initialisiere Charts
+        document.addEventListener('DOMContentLoaded', function() {
+            setupCharts();
+        });
+        
+        // Chart-Initialisierung
+        function setupCharts() {
+            // Historical Tab Utilization Trend Chart
+            {% if historical_data.has_data and historical_data.utilization_trend.dates %}
+                const trendCtx = document.getElementById('utilizationTrendChart').getContext('2d');
+                new Chart(trendCtx, {
+                    type: 'line',
+                    data: {
+                        labels: {{ historical_data.utilization_trend.dates|safe }},
+                        datasets: [{
+                            label: 'Auslastung (%)',
+                            data: {{ historical_data.utilization_trend.values|safe }},
+                            borderColor: '#3182bd',
+                            backgroundColor: 'rgba(49, 130, 189, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                title: {
+                                    display: true,
+                                    text: 'Auslastung (%)'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Datum'
+                                }
+                            }
+                        }
+                    }
+                });
+            {% endif %}
+            
+            // Historical Tab Hourly Distribution Chart
+            {% if historical_data.has_data and historical_data.peak_hours.hours %}
+                const hourlyCtx = document.getElementById('hourlyDistributionChart').getContext('2d');
+                
+                // Create array with 24 hours
+                const hours = Array.from({length: 24}, (_, i) => `${i}:00`);
+                
+                // Create data array with hour counts (or zeros)
+                const hourCounts = Array(24).fill(0);
+                
+                // Fill in values for peak hours
+                {% if historical_data.peak_hours.hours %}
+                    {% for hour in historical_data.peak_hours.hours %}
+                        hourCounts[{{ hour }}] = {{ historical_data.peak_hours.counts|get_at_index:forloop.counter0 }};
+                    {% endfor %}
+                {% endif %}
+                
+                new Chart(hourlyCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: hours,
+                        datasets: [{
+                            label: 'Nutzungshäufigkeit',
+                            data: hourCounts,
+                            backgroundColor: 'rgba(65, 171, 93, 0.7)',
+                            borderColor: 'rgba(65, 171, 93, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Häufigkeit'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Stunde'
+                                }
+                            }
+                        }
+                    }
+                });
+            {% endif %}
+            
+            // Historical Tab Category Popularity Chart
+            {% if historical_data.has_data and historical_data.category_popularity %}
+                const categoryCtx = document.getElementById('categoryPopularityChart').getContext('2d');
+                
+                const categoryNames = [{% for cat in historical_data.category_popularity %}'{{ cat.name }}',{% endfor %}];
+                const timeSpent = [{% for cat in historical_data.category_popularity %}{{ cat.time_spent }},{% endfor %}];
+                const studentCounts = [{% for cat in historical_data.category_popularity %}{{ cat.student_count }},{% endfor %}];
+                
+                new Chart(categoryCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: categoryNames,
+                        datasets: [
+                            {
+                                label: 'Zeit (Stunden)',
+                                data: timeSpent,
+                                backgroundColor: 'rgba(49, 130, 189, 0.7)',
+                                borderColor: 'rgba(49, 130, 189, 1)',
+                                borderWidth: 1,
+                                yAxisID: 'y'
+                            },
+                            {
+                                label: 'Anzahl Schüler',
+                                data: studentCounts,
+                                backgroundColor: 'rgba(65, 171, 93, 0.7)',
+                                borderColor: 'rgba(65, 171, 93, 1)',
+                                borderWidth: 1,
+                                yAxisID: 'y1'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                position: 'left',
+                                title: {
+                                    display: true,
+                                    text: 'Zeit (Stunden)'
+                                }
+                            },
+                            y1: {
+                                beginAtZero: true,
+                                position: 'right',
+                                grid: {
+                                    drawOnChartArea: false
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Anzahl Schüler'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'AG-Kategorie'
+                                }
+                            }
+                        }
+                    }
+                });
+            {% endif %}
+        }
+    </script>
+</body>
+{% endblock %}

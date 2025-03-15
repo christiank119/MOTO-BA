@@ -1,0 +1,11 @@
+from django.shortcuts import render, redirect
+from analysis_tool.view.heatmap.edit import raumplan_edit
+from analysis_tool.view.heatmap.save import save_polygon
+from analysis_tool.view.heatmap.upload import upload_raumplan
+from analysis_tool.view.heatmap.visualtisation import get_room_data
+from analysis_tool.view.heatmap.show import raumplan_show
+from analysis_tool.view.student_analysis.student_analysis_view import student_analysis_view
+from analysis_tool.view.category_analysis.category_analysis_view import category_analysis_view
+from analysis_tool.view.category_comparison.category_comparison_view import category_comparison_view
+from analysis_tool.view.ogs_optimization.ogs_optimization_view import ogs_optimization_view
+from analysis_tool.view.category_selection.category_selection_view import category_selection_view

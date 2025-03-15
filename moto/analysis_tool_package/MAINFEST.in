@@ -1,0 +1,6 @@
+include LICENSE
+include README.md
+include NOTICE
+recursive-include analysis_tool/static *
+recursive-include analysis_tool/templates *
+recursive-include analysis_tool/migrations *

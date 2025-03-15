@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="de">
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<head>
+  <link rel="stylesheet" type="text/css" href="{% static 'css/heatmap/heatmap.css' %}"/>
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Leaflet.draw CSS & JS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+  <!-- Chart.js für Diagramme -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+</head>
+  <div class="block_container">
+    <div class="header_container_back_help">
+      <button class="back" onclick="window.location.href = '/master_web/'"> 
+        <span class="arrow"> <i class="arrow_left"></i> </span> 
+        <span class="backtext">Zurück</span>
+      </button>
+
+      <a class="question" href="#popup1">Hilfe</a>
+
+      <div id="popup1" class="popup">
+        <div class="popup2">
+          <h3>Was muss ich in diesem Anzeigefenster beachten?</h3>
+
+          <div class="content">
+            <p>In dieser Ansicht können Sie die <strong>Raumauslastung</strong> in Form einer Heatmap visualisieren. 
+               Wählen Sie eine <strong>Metrik</strong> aus dem Dropdown-Menü und klicken Sie auf einen Raum, um weitere Details zu erhalten.</p>
+          </div>
+
+          <a class="close" href="#">&times;</a>
+        </div>
+      </div>
+    </div>
+
+    <h1 class="heading_2">Raumplan mit Heatmap: {{ raumplan.title }}</h1>
+    <h2 class="subheading_2">Raum-Auslastungs-Analyse</h2>
+  
+    <div class="controls">
+      <div class="metric-selector">
+        <label for="metric-select">Heatmap-Metrik auswählen:</label>
+        <select id="metric-select">
+          <option value="avg_utilization_percentage">Durchschnittliche Auslastung (%)</option>
+          <option value="total_actual_usage">Gesamtnutzungszeit (Stunden)</option>
+          <option value="full_capacity_percentage">Zeitliche Auslastung der vollen Kapazität (%)</option>
+          <option value="events">Anzahl der Veranstaltungen</option>
+        </select>
+        {% if user.is_superuser or user.username == 'root' %}
+        <a href="{% url 'heatmap_edit' %}" id="edit-button" class="button">Bearbeitungsmodus</a>
+        {% endif %}
+      </div>
+      
+      <div class="legend">
+        <h3>Legende</h3>
+        <div id="legend-items" class="legend-items"></div>
+      </div>
+    </div>
+  
+    <div class="container">
+      <div id="map-container">
+        <div id="map"></div>
+      </div>
+      
+      <div id="info-panel">
+        <h2>Rauminformationen</h2>
+        <p>Wählen Sie einen Raum auf der Karte aus, um Details anzuzeigen.</p>
+        
+        <div id="room-info" style="display: none;">
+          <div class="tabs">
+            <div class="tab active" data-tab="overview">Übersicht</div>
+            <div class="tab" data-tab="usage-time">Nutzungszeiten</div>
+            <div class="tab" data-tab="trend">Trend</div>
+          </div>
+          
+          <div id="tab-overview" class="tab-content">
+            <div class="room-details">
+              <h3 id="room-title">Raum: </h3>
+              <p id="room-utilization">Auslastung: </p>
+              <p id="room-capacity">Kapazitätsauslastung: </p>
+              <p id="room-events">Veranstaltungen: </p>
+            </div>
+          </div>
+          
+          <div id="tab-usage-time" class="tab-content" style="display: none;">
+            <div class="chart-container">
+              <canvas id="hourly-chart"></canvas>
+            </div>
+          </div>
+          
+          <div id="tab-trend" class="tab-content" style="display: none;">
+            <div class="chart-container">
+              <canvas id="trend-chart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // Globale Variablen
+    var map, drawnItems, drawControl;
+    var roomPolygons = {};  // Speichert Polygon-Objekte mit Raum-ID als Schlüssel
+    var roomData = {};      // Speichert Metriken für jeden Raum
+    var hourlyData = {};    // Speichert Spitzenzeiten-Daten
+    var trendData = {};     // Speichert historische Trend-Daten
+    var currentMetric = 'avg_utilization_percentage';
+    var editMode = false;
+    var hourlyChart = null;
+    var trendChart = null;
+    
+    // Farbkonfiguration für Heatmap
+    var colorConfig = {
+      'avg_utilization_percentage': {
+        min: 0,
+        max: 100,
+        colors: ['#e5f5e0', '#a1d99b', '#31a354'],
+        title: 'Auslastung (%)'
+      },
+      'total_actual_usage': {
+        min: 0,
+        max: 500,  // Anpassen je nach tatsächlichem Wertebereich
+        colors: ['#eff3ff', '#9ecae1', '#3182bd'],
+        title: 'Nutzungszeit (h)'
+      },
+      'full_capacity_percentage': {
+        min: 0,
+        max: 100,
+        colors: ['#fee5d9', '#fcae91', '#de2d26'],
+        title: 'Kapazitätsauslastung (%)'
+      },
+      'events': {
+        min: 0,
+        max: 100,  // Anpassen je nach tatsächlichem Wertebereich
+        colors: ['#efedf5', '#bcbddc', '#756bb1'],
+        title: 'Veranstaltungen'
+      }
+    };
+    
+    // Karte initialisieren
+    function initMap() {
+      map = L.map('map', {
+        crs: L.CRS.Simple,
+        minZoom: -5,
+        maxZoom: 3,
+        zoomControl: true
+      });
+      map.zoomControl.setPosition('topright');
+
+      // Bilddimensionen aus dem RaumPlan-Modell
+      var w = {{ raumplan.width }};
+      var h = {{ raumplan.height }};
+      
+      // Koordinatensystem definieren
+      var southWest = map.unproject([0, h], 0);
+      var northEast = map.unproject([w, 0], 0);
+      var bounds = new L.LatLngBounds(southWest, northEast);
+
+      // Raumplan als Bild-Overlay hinzufügen
+      var image = L.imageOverlay("{{ raumplan.image.url }}", bounds).addTo(map);
+      map.fitBounds(bounds);
+      
+      // FeatureGroup zum Speichern gezeichneter Items
+      drawnItems = new L.FeatureGroup();
+      map.addLayer(drawnItems);
+
+      // Draw Control inizialisieren (aber nicht hinzufügen)
+      drawControl = new L.Control.Draw({
+        position: 'topright',
+        edit: {
+          featureGroup: drawnItems,
+          poly: {
+            allowIntersection: false
+          }
+        },
+        draw: {
+          polygon: {
+            allowIntersection: false,
+            showArea: true,
+            shapeOptions: {
+              color: '#3388ff',
+              weight: 2
+            }
+          },
+          // Andere Tools deaktivieren
+          marker: false,
+          polyline: false,
+          rectangle: false,
+          circle: false,
+          circlemarker: false
+        }
+      });
+    }
+    
+    // Vorhandene Polygone laden
+    function loadRoomPolygons() {
+      try {
+        var polygonData = {{ polygon_json|safe }};
+        
+        polygonData.forEach(function(room) {
+          // Konvertiere gespeicherte (x,y)-Koordinaten in Leaflet LatLngs
+          var points = room.polygon.map(function(pt) {
+            return map.unproject([pt.x, pt.y], 0);
+          });
+          
+          // Erstelle Polygon
+          var polygon = L.polygon(points, {
+            color: '#3388ff',
+            weight: 2,
+            fillOpacity: 0.2
+          }).addTo(drawnItems);
+          
+          // Speichere Raum-ID und andere Eigenschaften
+          polygon.roomId = room.raum_id;
+          polygon.roomNumber = room.raum_nr;
+          
+          // Event-Handler für Klick
+          polygon.on('click', function() {
+            if (!editMode) {
+              showRoomDetails(this.roomId);
+            }
+          });
+          
+          // Speichere in globaler Map
+          roomPolygons[room.raum_id] = polygon;
+        });
+        
+        // Lade Raumdaten für Heatmap
+        loadRoomData();
+      } catch (e) {
+        console.error("Fehler beim Laden der Polygon-Daten:", e);
+      }
+    }
+    
+    // Lade Daten für Räume (über AJAX)
+    function loadRoomData() {
+      fetch("{% url 'heatmap_get_room_data' %}")
+        .then(response => response.json())
+        .then(data => {
+          roomData = data.rooms;
+          hourlyData = data.hourly;
+          trendData = data.trends;
+          
+          // Heatmap anwenden
+          applyHeatmap();
+          // Legende aktualisieren
+          updateLegend();
+        })
+        .catch(error => {
+          console.error("Fehler beim Laden der Raumdaten:", error);
+        });
+    }
+    
+    // Farbe basierend auf Wert und Metrik ermitteln
+    function getColorForValue(value, metricName) {
+      const config = colorConfig[metricName];
+      
+      // Linear interpolation zwischen den Farben
+      let normalizedValue = Math.max(0, Math.min(1, (value - config.min) / (config.max - config.min)));
+      
+      // Wenn mehrere Farben verfügbar sind, interpoliere
+      const colors = config.colors;
+      if (normalizedValue === 1) return colors[colors.length - 1];
+      if (normalizedValue === 0) return colors[0];
+      
+      // Berechne, zwischen welchen Farben interpoliert werden muss
+      const segment = (colors.length - 1) * normalizedValue;
+      const index = Math.floor(segment);
+      const t = segment - index;  // Position zwischen den beiden Farben (0-1)
+      
+      // Konvertiere hex zu rgb und interpoliere
+      const startColor = hexToRgb(colors[index]);
+      const endColor = hexToRgb(colors[index + 1]);
+      
+      const r = Math.round(startColor.r + t * (endColor.r - startColor.r));
+      const g = Math.round(startColor.g + t * (endColor.g - startColor.g));
+      const b = Math.round(startColor.b + t * (endColor.b - startColor.b));
+      
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+    
+    // Hex zu RGB konvertieren
+    function hexToRgb(hex) {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+      } : null;
+    }
+    
+    // Heatmap anwenden
+    function applyHeatmap() {
+      // Metrik aus Select-Element holen
+      currentMetric = document.getElementById('metric-select').value;
+      
+      // Für jedes Polygon die Farbe setzen
+      Object.keys(roomPolygons).forEach(roomId => {
+        const polygon = roomPolygons[roomId];
+        const data = roomData[roomId];
+        
+        if (data && data[currentMetric] !== undefined) {
+          const color = getColorForValue(data[currentMetric], currentMetric);
+          
+          // Farbe anwenden
+          polygon.setStyle({
+            fillColor: color,
+            fillOpacity: 0.6
+          });
+          
+          // Tooltip aktualisieren
+          polygon.bindTooltip(`Raum ${polygon.roomNumber}: ${data[currentMetric].toFixed(1)} ${getMetricUnit(currentMetric)}`);
+        } else {
+          // Default-Farbe für Räume ohne Daten
+          polygon.setStyle({
+            fillColor: '#cccccc',
+            fillOpacity: 0.3
+          });
+          polygon.bindTooltip(`Raum ${polygon.roomNumber}: Keine Daten`);
+        }
+      });
+      
+      // Update legend when changing the metric
+      updateLegend();
+    }
+    
+    // Metrik-Einheit holen
+    function getMetricUnit(metric) {
+      switch(metric) {
+        case 'avg_utilization_percentage':
+        case 'full_capacity_percentage':
+          return '%';
+        case 'total_actual_usage':
+          return 'h';
+        case 'events':
+          return '';
+        default:
+          return '';
+      }
+    }
+    
+    // Legende aktualisieren
+    function updateLegend() {
+      const legendContainer = document.getElementById('legend-items');
+      legendContainer.innerHTML = '';
+      
+      const config = colorConfig[currentMetric];
+      const steps = 5;
+      
+      for (let i = 0; i < steps; i++) {
+        const value = config.min + (config.max - config.min) * (i / (steps - 1));
+        const color = getColorForValue(value, currentMetric);
+        
+        const legendItem = document.createElement('div');
+        legendItem.className = 'legend-item';
+        
+        const colorBox = document.createElement('div');
+        colorBox.className = 'legend-color';
+        colorBox.style.backgroundColor = color;
+        
+        const label = document.createElement('span');
+        label.textContent = `${value.toFixed(0)} ${getMetricUnit(currentMetric)}`;
+        
+        legendItem.appendChild(colorBox);
+        legendItem.appendChild(label);
+        legendContainer.appendChild(legendItem);
+      }
+    }
+    
+    // Raumdetails anzeigen
+    function showRoomDetails(roomId) {
+      const roomInfo = document.getElementById('room-info');
+      const titleElement = document.getElementById('room-title');
+      const utilizationElement = document.getElementById('room-utilization');
+      const capacityElement = document.getElementById('room-capacity');
+      const eventsElement = document.getElementById('room-events');
+      
+      // Aktives Polygon hervorheben
+      Object.values(roomPolygons).forEach(polygon => {
+        polygon.setStyle({ weight: polygon.roomId === roomId ? 4 : 2 });
+      });
+      
+      const data = roomData[roomId];
+      if (!data) {
+        roomInfo.style.display = 'none';
+        return;
+      }
+      
+      roomInfo.style.display = 'block';
+      titleElement.textContent = `Raum: ${roomPolygons[roomId].roomNumber}`;
+      utilizationElement.textContent = `Durchschnittliche Auslastung: ${data.avg_utilization_percentage.toFixed(1)}%`;
+      capacityElement.textContent = `Kapazitätsauslastung: ${data.full_capacity_percentage.toFixed(1)}%`;
+      eventsElement.textContent = `Anzahl Veranstaltungen: ${data.events}`;
+      
+      // Stündliche Nutzung visualisieren
+      updateHourlyChart(roomId);
+      
+      // Trend visualisieren
+      updateTrendChart(roomId);
+      
+      // Tab anzeigen
+      showTab('overview');
+    }
+    
+    // Stündliche Nutzung als Chart anzeigen
+    function updateHourlyChart(roomId) {
+      const hourlyCanvas = document.getElementById('hourly-chart');
+      const hourlyData = window.hourlyData[roomId];
+      
+      if (hourlyChart) {
+        hourlyChart.destroy();
+      }
+      
+      if (!hourlyData) return;
+      
+      const hoursLabels = Array.from({length: 24}, (_, i) => `${i}:00`);
+      const hoursCounts = hoursLabels.map((_, i) => hourlyData[i] || 0);
+      
+      hourlyChart = new Chart(hourlyCanvas, {
+        type: 'bar',
+        data: {
+          labels: hoursLabels,
+          datasets: [{
+            label: 'Nutzungshäufigkeit',
+            data: hoursCounts,
+            backgroundColor: '#9ecae1',
+            borderColor: '#3182bd',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Anzahl'
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Stunde'
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    // Trend als Chart anzeigen
+    function updateTrendChart(roomId) {
+      const trendCanvas = document.getElementById('trend-chart');
+      const trend = trendData[roomId];
+      
+      if (trendChart) {
+        trendChart.destroy();
+      }
+      
+      if (!trend || !trend.dates) return;
+      
+      trendChart = new Chart(trendCanvas, {
+        type: 'line',
+        data: {
+          labels: trend.dates,
+          datasets: [{
+            label: 'Auslastung (%)',
+            data: trend.utilization,
+            borderColor: '#31a354',
+            backgroundColor: 'rgba(49, 163, 84, 0.1)',
+            tension: 0.3,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              title: {
+                display: true,
+                text: 'Auslastung (%)'
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Datum'
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    // Event: Neues Polygon wurde gezeichnet
+    function setupDrawEvents() {
+      map.on(L.Draw.Event.CREATED, function(e) {
+        var layer = e.layer;
+        
+        // Hole die LatLngs des gezeichneten Polygons
+        var latlngs = layer.getLatLngs()[0];
+        
+        if (!latlngs || latlngs.length < 3) {
+          alert("Ein Polygon muss mindestens drei Punkte haben.");
+          return;
+        }
+
+        // Konvertiere die LatLngs zurück in Bildkoordinaten
+        var polygonCoords = latlngs.map(function(latlng) {
+          var point = map.project(latlng, 0);
+          return { x: Math.round(point.x), y: Math.round(point.y) };
+        });
+
+        // Frage nach der Raumnummer
+        var raum_nr = prompt("Bitte Raumnummer eingeben:");
+        if (!raum_nr) {
+          alert("Raumnummer ist erforderlich!");
+          return;
+        }
+
+        // Füge das Polygon zur Layer-Gruppe hinzu
+        drawnItems.addLayer(layer);
+
+        // AJAX-POST an den Server, um das Polygon zu speichern
+        var postData = {
+          raum_nr: raum_nr,
+          raumplan_id: {{ raumplan.id }},
+          polygon: polygonCoords
+        };
+
+        fetch("{% url 'heatmap_save' %}", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token }}"
+          },
+          body: JSON.stringify(postData)
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error("Server response was not OK");
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.success) {
+            alert("Polygon erfolgreich gespeichert!");
+            // Nach dem Speichern neu laden
+            window.location.reload();
+          } else {
+            alert("Fehler beim Speichern: " + data.error);
+          }
+        })
+        .catch(error => {
+          console.error("Error:", error);
+          alert("Ein Fehler ist aufgetreten: " + error.message);
+        });
+      });
+    }
+    
+    // Edit mode functionality has been removed
+    // and replaced with a direct link to the edit page
+    
+    // Tab anzeigen
+    function showTab(tabName) {
+      // Alle Tab-Inhalte ausblenden
+      document.querySelectorAll('.tab-content').forEach(elem => {
+        elem.style.display = 'none';
+      });
+      
+      // Alle Tabs deaktivieren
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      
+      // Gewählten Tab-Inhalt anzeigen
+      document.getElementById(`tab-${tabName}`).style.display = 'block';
+      
+      // Tab aktivieren
+      document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
+    }
+    
+    // Event-Listener
+    function setupEventListeners() {
+      // Tab-Wechsel
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+          showTab(this.dataset.tab);
+        });
+      });
+      
+      // Listen for metric select changes
+      document.getElementById('metric-select').addEventListener('change', function() {
+        applyHeatmap();
+      });
+    }
+    
+    // Initialisierung
+    document.addEventListener('DOMContentLoaded', function() {
+      initMap();
+      loadRoomPolygons();
+      setupDrawEvents();
+      setupEventListeners();
+    });
+  </script>
+</body>
+{% endblock %}
