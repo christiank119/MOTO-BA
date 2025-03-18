@@ -35,12 +35,6 @@ def merge_intervals(intervals, gap_threshold=timedelta(minutes=15)):
 
 
 def update_session_buffer_for_student(student):
-    """
-    Aktualisiert den Zwischenspeicher für einen Schüler inkrementell.
-    Dabei werden alle datetime-Objekte in timezone-aware Objekte umgewandelt.
-    Falls keine Endzeit vorhanden ist (bei laufenden Aufenthalten oder Raum_Belegungen),
-    wird ein Fallback genutzt.
-    """
     tz = timezone.get_current_timezone()
     # Bestehende Buffer-Einträge anhand eines eindeutigen Schlüssels ermitteln.
     existing_entries = {}
