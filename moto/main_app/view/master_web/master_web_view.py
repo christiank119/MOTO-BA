@@ -1,19 +1,26 @@
 from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
 from main_app.models import Personal, Gruppe
+from main_app.utils.permission_management import is_mobile, user_has_ogs, user_is_superuser
+from main_app.registry import navigation_registry, check_conditions
+from django.urls import reverse
 
 def master_web_view(request):
     if request.user.is_authenticated:
         user = request.user
-        has_ogs = False
-        if(Personal.objects.filter(user=user).exists()):
-            personal = Personal.objects.get(user=user)
-            if(Gruppe.objects.filter(gruppen_leiter=personal).exists()):
-                gruppe = Gruppe.objects.get(gruppen_leiter=personal)
-                if gruppe.vertreter == None:
-                    has_ogs = True    
-            if Gruppe.objects.filter(vertreter=personal).exists():
-                has_ogs = True
-        return render(request, 'master_overview/master_web.html', {"user":user, "has_ogs":has_ogs})
+        return render(request, 'master_overview/master_web.html', {"user":user, "functions":get_user_functions(request)})
     else:
         return redirect("login")
+    
+def get_user_functions(request): # Funktion gibt an, welche Funktionen ein nutzer benutzten darf und diesem dementsprchende angezeigt werden
+    functions = []
+    for item in navigation_registry.values():
+        if item.get("show_in_nav", True) and check_conditions(request, item.get("nav_conditions", [])):
+            item_copy = item.copy()
+            try:
+                item_copy["url"] = reverse(item["url_name"])
+                functions.append(item_copy)
+            except Exception as e:
+                # Log or handle URL resolution errors as needed.
+                pass
+    return functions

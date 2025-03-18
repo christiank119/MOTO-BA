@@ -1,0 +1,168 @@
+2025-03-10 15:29:31 - __main__ - DEBUG - CALL: MainWindow.user_is_authenticated
+2025-03-10 15:29:31 - __main__ - DEBUG - RETURN: MainWindow.user_is_authenticated completed in 0.0000s
+2025-03-10 15:29:31 - __main__ - INFO - CALL: MainWindow.switch_page with args: {'self': <__main__.MainWindow object at 0x7f014a4f7cc0 (__main__+MainWindow at 0x56189ba36280)>, 'page_name': 'login'}
+2025-03-10 15:29:31 - __main__ - INFO - RETURN: MainWindow.switch_page completed in 0.0836s
+2025-03-10 15:29:53 - __main__ - INFO - CALL: MainWindow.switch_page with args: {'self': <__main__.MainWindow object at 0x7f014a4f7cc0 (__main__+MainWindow at 0x56189ba36280)>, 'page_name': 'pin_entry'}
+2025-03-10 15:29:53 - __main__ - INFO - RETURN: MainWindow.switch_page completed in 0.0424s
+2025-03-10 15:30:00 - __main__ - INFO - CALL: MainWindow.switch_page with args: {'self': <__main__.MainWindow object at 0x7f014a4f7cc0 (__main__+MainWindow at 0x56189ba36280)>, 'page_name': 'login'}
+2025-03-10 15:30:00 - __main__ - INFO - RETURN: MainWindow.switch_page completed in 0.0293s
+2025-03-10 15:31:20 - __main__ - DEBUG - CALL: MainWindow.user_is_authenticated
+2025-03-10 15:31:20 - __main__ - DEBUG - RETURN: MainWindow.user_is_authenticated completed in 0.0000s
+2025-03-10 15:31:20 - __main__ - INFO - CALL: MainWindow.switch_page with args: {'self': <__main__.MainWindow object at 0x7f071dbc00c0 (__main__+MainWindow at 0x55aacd99e280)>, 'page_name': 'login'}
+2025-03-10 15:31:20 - __main__ - INFO - RETURN: MainWindow.switch_page completed in 0.0673s
+2025-03-10 15:31:29 - __main__ - INFO - CALL: MainWindow.switch_page with args: {'self': <__main__.MainWindow object at 0x7f071dbc00c0 (__main__+MainWindow at 0x55aacd99e280)>, 'page_name': 'pin_entry'}
+2025-03-10 15:31:29 - __main__ - INFO - RETURN: MainWindow.switch_page completed in 0.0716s
+2025-03-10 15:31:32 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:32 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:31:32 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:32 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:31:32 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:32 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:31:34 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:34 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:31:34 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:34 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:31:35 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:35 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:31:35 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:35 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:31:35 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:35 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:31:35 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:35 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:31:35 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:35 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:31:35 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:35 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:31:35 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:35 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:31:35 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:35 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:31:35 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:35 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:31:35 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:35 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:31:35 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:35 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:31:36 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:36 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:31:36 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:36 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:31:36 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:36 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:31:36 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:36 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:31:36 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:36 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:31:36 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:36 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:31:36 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:36 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:31:36 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:36 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:31:36 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:36 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:31:37 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:37 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:31:37 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:37 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:31:37 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:37 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:31:37 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:37 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:31:37 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:37 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:31:37 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:37 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:31:38 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:38 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:31:38 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:38 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:31:38 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:38 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:31:38 - __main__ - INFO - CALL: MainWindow.switch_page with args: {'self': <__main__.MainWindow object at 0x7f071dbc00c0 (__main__+MainWindow at 0x55aacd99e280)>, 'page_name': 'login'}
+2025-03-10 15:31:38 - __main__ - INFO - RETURN: MainWindow.switch_page completed in 0.0313s
+2025-03-10 15:31:39 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:31:39 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:32:29 - __main__ - DEBUG - CALL: MainWindow.user_is_authenticated
+2025-03-10 15:32:29 - __main__ - DEBUG - RETURN: MainWindow.user_is_authenticated completed in 0.0000s
+2025-03-10 15:32:29 - __main__ - INFO - CALL: MainWindow.switch_page with args: {'self': <__main__.MainWindow object at 0x7f797f53f840 (__main__+MainWindow at 0x560f18ac2280)>, 'page_name': 'login'}
+2025-03-10 15:32:29 - __main__ - INFO - RETURN: MainWindow.switch_page completed in 0.0678s
+2025-03-10 15:35:46 - __main__ - DEBUG - CALL: MainWindow.user_is_authenticated
+2025-03-10 15:35:46 - __main__ - DEBUG - RETURN: MainWindow.user_is_authenticated completed in 0.0001s
+2025-03-10 15:35:46 - __main__ - INFO - CALL: MainWindow.switch_page with args: {'self': <__main__.MainWindow object at 0x7f4afa113cc0 (__main__+MainWindow at 0x5571a3442280)>, 'page_name': 'login'}
+2025-03-10 15:35:46 - __main__ - INFO - RETURN: MainWindow.switch_page completed in 0.0708s
+2025-03-10 15:36:49 - __main__ - DEBUG - CALL: MainWindow.user_is_authenticated
+2025-03-10 15:36:49 - __main__ - DEBUG - RETURN: MainWindow.user_is_authenticated completed in 0.0000s
+2025-03-10 15:36:49 - __main__ - INFO - CALL: MainWindow.switch_page with args: {'self': <__main__.MainWindow object at 0x7fb2ac807380 (__main__+MainWindow at 0x557868dec280)>, 'page_name': 'login'}
+2025-03-10 15:36:49 - __main__ - INFO - RETURN: MainWindow.switch_page completed in 0.0631s
+2025-03-10 15:39:41 - __main__ - INFO - CALL: MainWindow.switch_page with args: {'self': <__main__.MainWindow object at 0x7fb2ac807380 (__main__+MainWindow at 0x557868dec280)>, 'page_name': 'pin_entry'}
+2025-03-10 15:39:41 - __main__ - INFO - RETURN: MainWindow.switch_page completed in 0.1012s
+2025-03-10 15:39:45 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:39:45 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:39:45 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:39:45 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:39:45 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:39:45 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:39:45 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:39:45 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:39:50 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:39:50 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:39:50 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:39:50 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:39:50 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:39:50 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:39:51 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:39:51 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:39:52 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:39:52 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:45:53 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:45:53 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0002s
+2025-03-10 15:46:12 - __main__ - DEBUG - CALL: MainWindow.user_is_authenticated
+2025-03-10 15:46:12 - __main__ - DEBUG - RETURN: MainWindow.user_is_authenticated completed in 0.0000s
+2025-03-10 15:46:12 - __main__ - INFO - CALL: MainWindow.switch_page with args: {'self': <__main__.MainWindow object at 0x7f1505f8fcc0 (__main__+MainWindow at 0x555d2637e280)>, 'page_name': 'login'}
+2025-03-10 15:46:12 - __main__ - INFO - RETURN: MainWindow.switch_page completed in 0.0504s
+2025-03-10 15:46:43 - __main__ - INFO - CALL: MainWindow.switch_page with args: {'self': <__main__.MainWindow object at 0x7f1505f8fcc0 (__main__+MainWindow at 0x555d2637e280)>, 'page_name': 'pin_entry'}
+2025-03-10 15:46:43 - __main__ - INFO - RETURN: MainWindow.switch_page completed in 0.1585s
+2025-03-10 15:46:46 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:46:46 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:46:46 - __main__ - INFO - CALL: MainWindow.set_auth_tokens
+2025-03-10 15:46:46 - __main__ - INFO - RETURN: MainWindow.set_auth_tokens completed in 0.0006s
+2025-03-10 15:46:46 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:46:46 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:46:46 - __main__ - INFO - CALL: MainWindow.set_auth_tokens
+2025-03-10 15:46:46 - __main__ - INFO - RETURN: MainWindow.set_auth_tokens completed in 0.0005s
+2025-03-10 15:46:46 - __main__ - DEBUG - CALL: MainWindow.get_device_id
+2025-03-10 15:46:46 - __main__ - DEBUG - RETURN: MainWindow.get_device_id completed in 0.0000s
+2025-03-10 15:46:47 - __main__ - INFO - CALL: MainWindow.set_auth_tokens
+2025-03-10 15:46:47 - __main__ - INFO - RETURN: MainWindow.set_auth_tokens completed in 0.0005s
+2025-03-10 15:46:47 - __main__ - INFO - CALL: MainWindow.switch_page with args: {'self': <__main__.MainWindow object at 0x7f1505f8fcc0 (__main__+MainWindow at 0x555d2637e280)>, 'page_name': 'choose_room'}
+2025-03-10 15:46:47 - __main__ - INFO - RETURN: MainWindow.switch_page completed in 0.0570s
+2025-03-10 15:46:48 - __main__ - INFO - CALL: MainWindow.switch_page with args: {'self': <__main__.MainWindow object at 0x7f1505f8fcc0 (__main__+MainWindow at 0x555d2637e280)>, 'page_name': 'choose_room'}
+2025-03-10 15:46:48 - __main__ - INFO - RETURN: MainWindow.switch_page completed in 0.0798s
+2025-03-10 15:46:48 - __main__ - INFO - CALL: MainWindow.switch_page with args: {'self': <__main__.MainWindow object at 0x7f1505f8fcc0 (__main__+MainWindow at 0x555d2637e280)>, 'page_name': 'choose_room'}
+2025-03-10 15:46:48 - __main__ - INFO - RETURN: MainWindow.switch_page completed in 0.0785s
+2025-03-11 00:08:02 - __main__ - DEBUG - CALL: MainWindow.user_is_authenticated
+2025-03-11 00:08:02 - __main__ - DEBUG - RETURN: MainWindow.user_is_authenticated completed in 0.0000s
+2025-03-11 00:08:02 - __main__ - INFO - CALL: MainWindow.switch_page with args: {'self': <__main__.MainWindow object at 0x7f048f277380 (__main__+MainWindow at 0x562e3fc32280)>, 'page_name': 'login'}
+2025-03-11 00:08:02 - __main__ - INFO - RETURN: MainWindow.switch_page completed in 0.0416s
+2025-03-11 00:11:42 - __main__ - DEBUG - CALL: MainWindow.user_is_authenticated
+2025-03-11 00:11:42 - __main__ - DEBUG - RETURN: MainWindow.user_is_authenticated completed in 0.0000s
+2025-03-11 00:11:42 - __main__ - INFO - CALL: MainWindow.switch_page with args: {'self': <__main__.MainWindow object at 0x7f87144bfcc0 (__main__+MainWindow at 0x5598d7cf0280)>, 'page_name': 'login'}
+2025-03-11 00:11:42 - __main__ - INFO - RETURN: MainWindow.switch_page completed in 0.0610s
+2025-03-11 00:12:15 - __main__ - DEBUG - CALL: MainWindow.user_is_authenticated
+2025-03-11 00:12:15 - __main__ - DEBUG - RETURN: MainWindow.user_is_authenticated completed in 0.0000s
+2025-03-11 00:12:15 - __main__ - INFO - CALL: MainWindow.switch_page with args: {'self': <__main__.MainWindow object at 0x7f286cdb00c0 (__main__+MainWindow at 0x556a59dd0280)>, 'page_name': 'login'}
+2025-03-11 00:12:15 - __main__ - INFO - RETURN: MainWindow.switch_page completed in 0.0572s
+2025-03-11 00:12:58 - __main__ - DEBUG - CALL: MainWindow.user_is_authenticated
+2025-03-11 00:12:58 - __main__ - DEBUG - RETURN: MainWindow.user_is_authenticated completed in 0.0000s
+2025-03-11 00:12:58 - __main__ - INFO - CALL: MainWindow.switch_page with args: {'self': <__main__.MainWindow object at 0x7f756995b700 (__main__+MainWindow at 0x55aee1e84280)>, 'page_name': 'login'}
+2025-03-11 00:12:58 - __main__ - INFO - RETURN: MainWindow.switch_page completed in 0.0713s
+2025-03-11 11:39:32 - __main__ - DEBUG - CALL: MainWindow.user_is_authenticated
+2025-03-11 11:39:32 - __main__ - DEBUG - RETURN: MainWindow.user_is_authenticated completed in 0.0000s
+2025-03-11 11:39:32 - __main__ - INFO - CALL: MainWindow.switch_page with args: {'self': <__main__.MainWindow object at 0x7fe94c8a3700 (__main__+MainWindow at 0x56495b740280)>, 'page_name': 'login'}
+2025-03-11 11:39:32 - __main__ - INFO - RETURN: MainWindow.switch_page completed in 0.1909s
+2025-03-11 22:04:25 - __main__ - DEBUG - CALL: MainWindow.user_is_authenticated
+2025-03-11 22:04:25 - __main__ - DEBUG - RETURN: MainWindow.user_is_authenticated completed in 0.0000s
+2025-03-11 22:04:25 - __main__ - INFO - CALL: MainWindow.switch_page with args: {'self': <__main__.MainWindow object at 0x7f4fbbd68e00 (__main__+MainWindow at 0x55dc6af6a280)>, 'page_name': 'login'}
+2025-03-11 22:04:25 - __main__ - INFO - RETURN: MainWindow.switch_page completed in 0.0539s

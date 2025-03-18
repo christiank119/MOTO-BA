@@ -23,6 +23,7 @@ def remove_tablet(request, device_id):
                 zeitraum1 = aufenthalt.zeitraum
                 zeitraum1.endzeit = datetime.now().time()
                 zeitraum1.save()
+                aufenthalt.save()
         zeitraum = raum_belegung.zeitraum
         zeitraum.endzeit = datetime.now().time()
         zeitraum.save()

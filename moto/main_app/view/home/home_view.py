@@ -7,8 +7,8 @@ from main_app.view.user_verification.login_view import logout_user_from_all_sess
 from django.contrib import messages
 
 def home_view(request, tag_id = None):
-    if request.user.is_authenticated:
-        logout(request)
+    #if request.user.is_authenticated:
+    #    logout(request)
     request.session["back_button_login"] = True
     device_id = request.COOKIES.get('device_id')
     if not (Raum_Belegung.objects.filter(tablet_id=device_id).exists()):
@@ -47,6 +47,7 @@ def home_view(request, tag_id = None):
                     else:
                         messages.error(request,"Die maximale Raumkapazität wurde bereits erreicht")
                 else:
+
                     if(Personal.objects.filter(nutzer=nutzer).exists()):
                         p = Personal.objects.get(nutzer=nutzer)
                         logout_user_from_all_sessions(p.user)

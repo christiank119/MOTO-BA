@@ -29,7 +29,7 @@ def set_new_password_view(request):
         if(passwort1 == passwort2):
             passwort1 = passwort1.replace(" ", "")
             if(passwort1 == passwort2):
-                if(len(str(passwort1))>=5):       # TODO: Passwort requirements  
+                if(len(str(passwort1))>=4):       # TODO: Passwort requirements  
                     if(otp==False):    
                         old_passwort = request.POST["old_password"] 
                         user2=authenticate(username=user.username,password=old_passwort)

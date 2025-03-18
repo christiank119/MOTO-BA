@@ -23,6 +23,7 @@ def leave_room_view(request):
                         zeitraum = aufenthalt.zeitraum
                         zeitraum.endzeit = datetime.now().time()
                         zeitraum.save()
+                        aufenthalt.save()
                         if not request.POST.get('tag_id', None) == None:
                             tag_id = request.POST.get('tag_id')
                             return home_view(request, tag_id)

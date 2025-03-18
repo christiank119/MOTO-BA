@@ -5,19 +5,35 @@ services:
       - "8000:8000"
     volumes:
       - .:/code
+      - ./logs:/code/logs
     entrypoint: /entrypoint.sh
     command: python manage.py runserver_plus --cert-file certificate/nginx-selfsigned.crt --key-file certificate/nginx-selfsigned.key 0.0.0.0:8000
     depends_on:
         - db
+    env_file:
+      - .env
+  native-app:
+    build:
+      context: ./native_app
+      dockerfile: Dockerfile
+    environment:
+      - DISPLAY=${DISPLAY_ENV:-:0}
+      - XAUTHORITY=/tmp/.Xauthority
+      - API_BASE_URL=${API_BASE_URL:-https://127.0.0.1:8000/api}
+      - VERIFY_SSL=${VERIFY_SSL:-False}
+    volumes:
+      - ./native_app:/app
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ~/.Authority:/tmp/.Xauthority:ro
+    network_mode: host
   db:
     image: postgres:latest
     volumes:
       - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - .env
     environment:
       - POSTGRES_HOST_AUTH_METHOD=trust
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=moto
     ports:
       - "5432:5432"
 volumes:

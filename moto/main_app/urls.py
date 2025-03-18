@@ -5,6 +5,7 @@ from . import views
 
 
 urlpatterns = [
+    # View paths:
     path('master_web/', views.master_web, name='master_web'),
     path('master_tablet/', views.master_android, name='master_tablet'),
     path('remove_tablet/', views.remove_tablet, name='remove_tablet'),
@@ -38,6 +39,15 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard'),
     path('food_history/<int:pupil>', views.food_history, name='food_history'),
     path('representation/', views.representation, name='representation'),
+    path('choose_data/', views.choose_data_view, name='choose_data'),
+    path('choose_data/student/', views.select_student_change_view, name='choose_data_student'),
+    path('choose_data/room/', views.select_room_change, name='choose_data_room'),
+    path('choose_data/pa/', views.select_pa_change, name='choose_data_pa'),
+    path('choose_data/group/', views.select_group_change, name='choose_data_group'),
+    path('choose_data/student/<int:id>', views.change_student, name='change_student_data'),
+    path('choose_data/room/<int:id>', views.change_room, name='change_room_data'),
+    path('choose_data/group/<int:id>', views.change_group, name='change_group_data'),
+    path('choose_data/pa/<int:id>', views.change_student, name='change_pa_data'),
 ]
 
 
@@ -90,5 +100,20 @@ allowed_urls_web = [
     'dashboard',
     'food_history',
     'representation',
+    'choose_data',
+    'choose_data_student',
+    'choose_data_pa',
+    'choose_data_room',
+    'choose_data_group',
+    'change_student_data',
+    'change_room_data',
+    'change_pa_data',
+    'change_group_data',
     ]
 main_url_web = 'master_web'
+
+urls_apis = [
+
+    'api_test',
+
+]

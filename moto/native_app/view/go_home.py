@@ -1,0 +1,205 @@
+import gi
+from typing import Optional, Callable
+import logging
+
+gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk, Gdk, GLib
+
+class Colors:
+    BACKGROUND = "#f6f4f3"
+    FONT = "#1b2021"
+    GREEN = "#84cc2d"
+    INPUT_BG = "rgba(217, 217, 217, 0.5)"
+    VERY_WELL = "#83CD2D"
+    OKAY = "#F78C10"
+    BAD = "#FF3130"
+
+
+class GoHomeWindow(Gtk.Box):
+    def __init__(self, parent_window: Gtk.Window) -> None:
+        super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=20)
+        self.parent_window = parent_window
+        self.logger = logging.getLogger(__name__)
+
+        self._init_ui()
+        self._apply_styles()
+        self.show_all()
+
+        # Auto redirect after 3 seconds if no feedback given
+        GLib.timeout_add(300000, self._on_timeout) # Für Debug erhöht. Debuggende Grüße, Flo
+
+    def _init_ui(self) -> None:
+
+
+        # Create a Fixed container to position items absolutely
+        fixed_container = Gtk.Fixed()
+        fixed_container.set_size_request(1280, 720)  # Set the desired size for the login window
+
+        # Create the background image
+        background_image = Gtk.Image.new_from_file("img/colors.png")  # Update path to your background image
+        background_image.set_halign(Gtk.Align.CENTER)
+        background_image.set_valign(Gtk.Align.CENTER)
+
+        # Position the background image in the fixed container (0,0 is top-left corner)
+        fixed_container.put(background_image, 0, 0)
+
+        # Create the content container for the login form
+        content_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        content_container.set_size_request(1217, 660)
+        content_container.set_hexpand(True)
+        content_container.set_vexpand(True)
+        content_container.set_margin_top(30)
+        content_container.set_margin_bottom(30)
+        content_container.set_margin_start(30)
+        content_container.set_margin_end(30)
+        content_container.set_name("content_container")
+
+        # Title
+        title = Gtk.Label(label="Auf Wiedersehen!") # TODO: @chris include name of user
+        title.set_name("heading_type1")
+        title.set_margin_bottom(0)
+        content_container.pack_start(title, False, False, 0)
+
+        # Feedback buttons container
+        button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=30)
+        button_box.set_halign(Gtk.Align.CENTER)
+
+        # Bad button
+        bad = Gtk.Image.new_from_file("img/negative_smiley1.png")
+        bad.set_margin_bottom(0)  # Add some spacing below the image
+        button_box.pack_start(bad, False, False, 0)
+
+        # Neutral button
+        neutral = Gtk.Image.new_from_file("img/neutral_smiley1.png")
+        neutral.set_margin_bottom(0)  # Add some spacing below the image
+        button_box.pack_start(neutral, False, False, 0)
+
+        # Positive button
+        positive = Gtk.Image.new_from_file("img/positive_smiley1.png")
+        positive.set_margin_bottom(0)  # Add some spacing below the image
+        button_box.pack_start(positive, False, False, 0)
+
+
+
+        content_container.pack_start(button_box, True, True, 0)
+
+
+        # Subtitle
+        subtitle = Gtk.Label(label="Wie war dein Tag heute?")
+        subtitle.set_name("subtitle")
+        subtitle.set_margin_top(0)
+        content_container.pack_start(subtitle, False, False, 0)
+
+        # Position the content container on top of the background image
+        fixed_container.put(content_container, 0, 0)
+
+        # Add the whole fixed container to the parent window
+        self.add(fixed_container)
+
+        # Apply the CSS for the border-radius to the content container
+        self._apply_styles()
+
+    def _create_feedback_button(self, image_path: str, label_text: str, button_id: str,
+                                callback: Callable) -> Gtk.Box:
+        # Container for image and label
+        container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        container.set_name(button_id)
+
+        # Create button with image
+        try:
+            image = Gtk.Image.new_from_file(image_path)
+            image.set_pixel_size(80)
+        except Exception as e:
+            self.logger.error(f"Failed to load image {image_path}: {e}")
+            image = Gtk.Image()
+
+        button = Gtk.Button()
+        button.set_image(image)
+        button.set_name(f"{button_id}_button")
+        button.connect("clicked", callback)
+        container.pack_start(button, False, False, 0)
+
+        # Label
+        label = Gtk.Label(label=label_text)
+        label.set_name("feedback_label")
+        container.pack_start(label, False, False, 0)
+
+        return container
+
+    def _handle_feedback(self, feedback_type: str) -> None:
+        """Handle feedback submission"""
+        try:
+            headers = {
+                "Authorization": f"Bearer {self.parent_window.access_token}",
+                "Content-Type": "application/json"
+            }
+            # TODO: Implement API call for feedback
+            # After feedback is sent, redirect
+            self.parent_window.switch_page("login")
+        except Exception as e:
+            self.logger.error(f"Error sending feedback: {e}")
+            self.parent_window.switch_page("login")
+
+    def _on_timeout(self) -> bool:
+        """Handle automatic redirect after timeout"""
+        self.parent_window.switch_page("login")
+        return False
+
+    def _apply_styles(self) -> None:
+        css_provider = Gtk.CssProvider()
+        css = f"""
+            
+            #content_container {{
+            background-color: white;
+            border-radius: 25px;
+            box-shadow: rgba(0, 0, 0, 0.2) 0px 10px 15px;
+            padding: 20px 20px 20px 20px;
+            }}
+            
+            #heading_type1 {{
+                font-family: "Inter", sans-serif;
+                font-size: 56px;
+                font-weight: bold;
+                color: {Colors.FONT};
+            }}
+            
+            #subtitle {{
+                font-family: "Inter", sans-serif;
+                font-weight: bold;
+                font-size: 36px;
+                color: {Colors.FONT};
+            }}
+            
+            #very_well_smiley_button {{
+                min-width: 80px;
+                min-height: 80px;
+            }}
+            
+            #okay_smiley_button {{
+                border: none;
+                border-radius: 15px;
+                padding: 10px;
+                min-width: 80px;
+                min-height: 80px;
+            }}
+            
+            #bad_smiley_button {{
+                border: none;
+                border-radius: 15px;
+                padding: 10px;
+                min-width: 80px;
+                min-height: 80px;
+            }}
+            
+            #feedback_label {{
+                font-family: "Inter", sans-serif;
+                font-size: 18px;
+                color: {Colors.FONT};
+            }}
+        """
+        css_provider.load_from_data(css.encode())
+        Gtk.StyleContext.add_provider_for_screen(
+            Gdk.Screen.get_default(),
+            css_provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        )
